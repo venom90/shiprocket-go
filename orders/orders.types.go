@@ -50,6 +50,17 @@ type OrderItem struct {
 	HSN          int    `json:"hsn"`
 }
 
+type CustomOrderResponse struct {
+	OrderID                int     `json:"order_id"`
+	ShipmentID             int     `json:"shipment_id"`
+	Status                 string  `json:"status"`
+	StatusCode             int     `json:"status_code"`
+	OnboardingCompletedNow int     `json:"onboarding_completed_now"`
+	AWBCode                *string `json:"awb_code"`
+	CourierCompanyID       *int    `json:"courier_company_id"`
+	CourierName            *string `json:"courier_name"`
+}
+
 type ChannelSpecificOrderResponse struct {
 	OrderID    int    `json:"order_id"`
 	ShipmentID int    `json:"shipment_id"`
