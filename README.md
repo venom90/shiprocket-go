@@ -5,6 +5,12 @@ This is work in progress
 
 API Docs at: https://apidocs.shiprocket.in/
 
+## Installation
+
+```
+go get github.com/venom90/shiprocket-go
+```
+
 ```
 package main
 
