@@ -3,6 +3,8 @@ package orders
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -52,6 +54,13 @@ type Order struct {
 	Weight               float64     `json:"weight"`
 }
 
+type ChannelSpecificOrderResponse struct {
+	OrderID    int    `json:"order_id"`
+	ShipmentID int    `json:"shipment_id"`
+	Status     string `json:"status"`
+	StatusCode int    `json:"status_code"`
+}
+
 type OrderItem struct {
 	Name         string `json:"name"`
 	Sku          string `json:"sku"`
@@ -75,4 +84,43 @@ func (s *OrderService) CreateCustomOrder() (*http.Response, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	return resp, err
+}
+
+func (c *OrderService) CreateChannelSpecificOrder(order *Order) (*ChannelSpecificOrderResponse, error) {
+	jsonData, err := json.Marshal(order)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", c.BaseURL+"/v1/external/orders/create", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("CreateChannelSpecificOrder: bad status code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var response ChannelSpecificOrderResponse
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
