@@ -11,6 +11,8 @@ API Docs at: https://apidocs.shiprocket.in/
 go get github.com/venom90/shiprocket-go
 ```
 
+## Basic Usage
+
 ```
 package main
 
