@@ -22,9 +22,11 @@ import (
     "github.com/venom90/shiprocket-go/orders"
 )
 
+const BASE_URL = "https://apiv2.shiprocket.in"
+
 func main() {
     authService := &auth.AuthService{
-        BaseURL: "https://apiv2.shiprocket.in",
+        BaseURL: BASE_URL,
         Email:   "your-email",
         Password:"your-password",
     }
@@ -34,7 +36,7 @@ func main() {
     }
 
     orderService := &orders.OrderService{
-        BaseURL: "https://apiv2.shiprocket.in",
+        BaseURL: BASE_URL,
         Token:   token,
         Order:   orders.Order{ /* Populate your order here */ },
     }

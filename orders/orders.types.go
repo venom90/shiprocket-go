@@ -56,3 +56,83 @@ type ChannelSpecificOrderResponse struct {
 	Status     string `json:"status"`
 	StatusCode int    `json:"status_code"`
 }
+
+type PickupLocationUpdate struct {
+	OrderID        []int  `json:"order_id"`
+	PickupLocation string `json:"pickup_location"`
+}
+
+type PickupLocationUpdateResponse struct {
+	Message string `json:"message"`
+}
+
+type ShippingAddressUpdate struct {
+	OrderID              int    `json:"order_id"`
+	ShippingCustomerName string `json:"shipping_customer_name"`
+	ShippingPhone        string `json:"shipping_phone"`
+	ShippingAddress      string `json:"shipping_address"`
+	ShippingAddress2     string `json:"shipping_address_2"`
+	ShippingCity         string `json:"shipping_city"`
+	ShippingState        string `json:"shipping_state"`
+	ShippingCountry      string `json:"shipping_country"`
+	ShippingPincode      int    `json:"shipping_pincode"`
+}
+
+type ShippingAddressUpdateResponse struct {
+	Message string `json:"message"`
+}
+
+type OrderUpdateResponse struct {
+	Success          bool   `json:"success"`
+	PartiallyUpdate  bool   `json:"partially_update"`
+	NotUpdatedFields string `json:"not_updated_fields"`
+	OrderID          int    `json:"order_id"`
+	ShipmentID       int    `json:"shipment_id"`
+	NewOrderStatus   string `json:"new_order_status"`
+	OldOrderStatus   int    `json:"old_order_status"`
+	AwbCode          string `json:"awb_code"`
+	CourierCompanyID string `json:"courier_company_id"`
+	CourierName      string `json:"courier_name"`
+}
+
+type OrderCancel struct {
+	Ids []int `json:"ids"`
+}
+
+type OrderFulfill struct {
+	Data []OrderFulfillData `json:"data"`
+}
+
+type OrderFulfillData struct {
+	OrderId        int    `json:"order_id"`
+	OrderProductId int64  `json:"order_product_id"`
+	Quantity       string `json:"quantity"`
+	Action         string `json:"action"`
+}
+
+type FulfillResponse struct {
+	Data    OrderFulfillData `json:"data"`
+	Success bool             `json:"success"`
+	Message string           `json:"message"`
+}
+
+type OrderMapping struct {
+	Data []OrderMappingData `json:"data"`
+}
+
+type OrderMappingData struct {
+	OrderId        int    `json:"order_id"`
+	OrderProductId int    `json:"order_product_id"`
+	MasterSKU      string `json:"master_sku"`
+}
+
+type MappingResponse struct {
+	Data       OrderMappingData `json:"data"`
+	StatusCode int              `json:"status_code"`
+	Success    bool             `json:"success"`
+	Message    string           `json:"message"`
+}
+
+type ImportResponse struct {
+	ID int `json:"id"`
+}
