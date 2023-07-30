@@ -162,9 +162,3 @@ type Pagination struct {
 type OrderResponse struct {
 	Data json.RawMessage `json:"data"`
 }
-type GetOrdersResponse struct {
-	Data []OrderResponse `json:"data"`
-	Meta struct {
-		Pagination `json:"pagination"`
-	} `json:"meta"`
-}
