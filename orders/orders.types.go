@@ -150,15 +150,6 @@ type ImportResponse struct {
 	ID int `json:"id"`
 }
 
-type Pagination struct {
-	Total       int               `json:"total"`
-	Count       int               `json:"count"`
-	PerPage     int               `json:"per_page"`
-	CurrentPage int               `json:"current_page"`
-	TotalPages  int               `json:"total_pages"`
-	Links       map[string]string `json:"links"`
-}
-
 type OrderResponse struct {
 	Data json.RawMessage `json:"data"`
 }
