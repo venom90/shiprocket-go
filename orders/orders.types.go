@@ -1,5 +1,7 @@
 package orders
 
+import "encoding/json"
+
 type Order struct {
 	OrderID              string      `json:"order_id"`
 	OrderDate            string      `json:"order_date"`
@@ -146,4 +148,23 @@ type MappingResponse struct {
 
 type ImportResponse struct {
 	ID int `json:"id"`
+}
+
+type Pagination struct {
+	Total       int               `json:"total"`
+	Count       int               `json:"count"`
+	PerPage     int               `json:"per_page"`
+	CurrentPage int               `json:"current_page"`
+	TotalPages  int               `json:"total_pages"`
+	Links       map[string]string `json:"links"`
+}
+
+type OrderResponse struct {
+	Data json.RawMessage `json:"data"`
+}
+type GetOrdersResponse struct {
+	Data []OrderResponse `json:"data"`
+	Meta struct {
+		Pagination `json:"pagination"`
+	} `json:"meta"`
 }

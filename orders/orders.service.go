@@ -235,3 +235,47 @@ func (o *OrderService) ImportOrders(filePath string) (*ImportResponse, error) {
 
 	return &importResponse, nil
 }
+
+// Get Order response
+// This API call will display a list of all created and available orders in your Shiprocket account. The product and shipment details are displayed as sub-arrays within each order detail.
+func (o *OrderService) GetOrders() (*OrderResponse, error) {
+	// Create a new request
+	resp, err := pkg.SendRequest("GET", "/v1/external/orders", o.BaseURL, o.Token, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("GetOrders: bad status code: %d", resp.StatusCode)
+	}
+
+	var ordersResponse OrderResponse
+	if err := json.NewDecoder(resp.Body).Decode(&ordersResponse); err != nil {
+		return nil, err
+	}
+
+	return &ordersResponse, nil
+}
+
+// Get Specific Order Details
+// Get the order and shipment details of a particular order through this API by passing the Shiprocket order_id in the endpoint URL itself — type in your order_id in place of {id}.
+func (o *OrderService) GetOrderByID(orderId string) (OrderResponse, error) {
+
+	// Create a new request
+	resp, err := pkg.SendRequest("GET", "/v1/external/orders/show/"+orderId, o.BaseURL, o.Token, nil)
+	if err != nil {
+		return OrderResponse{}, err
+	}
+
+	defer resp.Body.Close()
+
+	var response OrderResponse
+	err = pkg.ReadResponse(resp, &response)
+	if err != nil {
+		return OrderResponse{}, err
+	}
+
+	return response, nil
+}
