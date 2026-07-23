@@ -1,0 +1,235 @@
+package shiprocket
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"net/url"
+	"strings"
+)
+
+const defaultBaseURL = "https://apiv2.shiprocket.in"
+
+type Option func(*Client)
+
+type Client struct {
+	BaseURL    string
+	Token      string
+	HTTPClient *http.Client
+	UserAgent  string
+}
+
+type Request struct {
+	Method       string
+	Path         string
+	PathParams   map[string]string
+	Query        url.Values
+	Headers      http.Header
+	JSONBody     any
+	RawBody      io.Reader
+	ContentType  string
+	Multipart    *MultipartBody
+	ExpectedCode []int
+}
+
+type MultipartBody struct {
+	Fields map[string]string
+	Files  []MultipartFile
+}
+
+type MultipartFile struct {
+	FieldName   string
+	FileName    string
+	Reader      io.Reader
+	ContentType string
+}
+
+func NewClient(baseURL string, opts ...Option) *Client {
+	if strings.TrimSpace(baseURL) == "" {
+		baseURL = defaultBaseURL
+	}
+
+	c := &Client{
+		BaseURL:    strings.TrimRight(baseURL, "/"),
+		HTTPClient: http.DefaultClient,
+		UserAgent:  "shiprocket-go",
+	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	if c.HTTPClient == nil {
+		c.HTTPClient = http.DefaultClient
+	}
+
+	return c
+}
+
+func WithHTTPClient(client *http.Client) Option {
+	return func(c *Client) {
+		c.HTTPClient = client
+	}
+}
+
+func WithToken(token string) Option {
+	return func(c *Client) {
+		c.Token = token
+	}
+}
+
+func WithUserAgent(userAgent string) Option {
+	return func(c *Client) {
+		c.UserAgent = userAgent
+	}
+}
+
+func (c *Client) NewRequest(ctx context.Context, req *Request) (*http.Request, error) {
+	if req == nil {
+		return nil, fmt.Errorf("request is required")
+	}
+
+	method := strings.ToUpper(strings.TrimSpace(req.Method))
+	if method == "" {
+		return nil, fmt.Errorf("request method is required")
+	}
+
+	path := req.Path
+	for key, value := range req.PathParams {
+		path = strings.ReplaceAll(path, "{"+key+"}", url.PathEscape(value))
+	}
+
+	rawURL, err := url.Parse(c.BaseURL + path)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(req.Query) > 0 {
+		query := rawURL.Query()
+		for key, values := range req.Query {
+			for _, value := range values {
+				query.Add(key, value)
+			}
+		}
+		rawURL.RawQuery = query.Encode()
+	}
+
+	body, contentType, err := buildBody(req)
+	if err != nil {
+		return nil, err
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, method, rawURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	if c.Token != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+c.Token)
+	}
+	if c.UserAgent != "" {
+		httpReq.Header.Set("User-Agent", c.UserAgent)
+	}
+	if contentType != "" {
+		httpReq.Header.Set("Content-Type", contentType)
+	}
+	for key, values := range req.Headers {
+		for _, value := range values {
+			httpReq.Header.Add(key, value)
+		}
+	}
+
+	return httpReq, nil
+}
+
+func (c *Client) Do(ctx context.Context, req *Request, out any) error {
+	resp, err := c.DoRaw(ctx, req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return DecodeResponse(resp, out, req.ExpectedCode...)
+}
+
+func (c *Client) DoRaw(ctx context.Context, req *Request) (*http.Response, error) {
+	httpReq, err := c.NewRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.HTTPClient.Do(httpReq)
+}
+
+func DecodeResponse(resp *http.Response, out any, expectedCodes ...int) error {
+	if !isExpectedStatus(resp.StatusCode, expectedCodes) {
+		return newAPIError(resp)
+	}
+
+	if out == nil || resp.StatusCode == http.StatusNoContent {
+		io.Copy(io.Discard, resp.Body)
+		return nil
+	}
+
+	return json.NewDecoder(resp.Body).Decode(out)
+}
+
+func buildBody(req *Request) (io.Reader, string, error) {
+	if req.Multipart != nil {
+		var body bytes.Buffer
+		writer := multipart.NewWriter(&body)
+
+		for key, value := range req.Multipart.Fields {
+			if err := writer.WriteField(key, value); err != nil {
+				return nil, "", err
+			}
+		}
+		for _, file := range req.Multipart.Files {
+			part, err := writer.CreateFormFile(file.FieldName, file.FileName)
+			if err != nil {
+				return nil, "", err
+			}
+			if _, err := io.Copy(part, file.Reader); err != nil {
+				return nil, "", err
+			}
+		}
+		if err := writer.Close(); err != nil {
+			return nil, "", err
+		}
+
+		return &body, writer.FormDataContentType(), nil
+	}
+
+	if req.RawBody != nil {
+		return req.RawBody, req.ContentType, nil
+	}
+
+	if req.JSONBody == nil {
+		return nil, "", nil
+	}
+
+	body, err := json.Marshal(req.JSONBody)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return bytes.NewReader(body), "application/json", nil
+}
+
+func isExpectedStatus(statusCode int, expectedCodes []int) bool {
+	if len(expectedCodes) == 0 {
+		return statusCode >= 200 && statusCode < 300
+	}
+
+	for _, expected := range expectedCodes {
+		if statusCode == expected {
+			return true
+		}
+	}
+
+	return false
+}

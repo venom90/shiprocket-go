@@ -11,18 +11,18 @@
 ## Audit Update — 2026-07-23
 
 Tasks
-- [ ] Replace the current per-service ad hoc HTTP code with a shared SDK client that owns base URL, auth token, `http.Client`, request building, retries/timeouts, and response decoding.
-- [ ] Fix request-body handling so the SDK supports JSON, query params, path params, empty-body requests, and multipart file uploads without abusing one JSON-only helper.
-- [ ] Fix `orders.ImportOrders`, which currently builds multipart content but sends it through a helper that JSON-marshals the body and drops multipart headers.
-- [ ] Fix `orders.CreateCustomOrder`, which parses the response and then returns a closed `*http.Response` instead of the typed result.
-- [ ] Replace raw/opaque response types like `OrderResponse{Data json.RawMessage}` with typed models wherever the API response shape is stable enough.
-- [ ] Add error handling for non-`200` success codes documented by Shiprocket, especially `202`, plus structured parsing for API error payloads.
-- [ ] Add tests before broad endpoint expansion so future additions do not regress serialization, auth, or file-import flows.
-- [ ] Normalize package layout and naming before endpoint count grows from the current few methods to the full published surface.
+- [x] Replace the current per-service ad hoc HTTP code with a shared SDK client that owns base URL, auth token, `http.Client`, request building, retries/timeouts, and response decoding.
+- [x] Fix request-body handling so the SDK supports JSON, query params, path params, empty-body requests, and multipart file uploads without abusing one JSON-only helper.
+- [x] Fix `orders.ImportOrders`, which currently builds multipart content but sends it through a helper that JSON-marshals the body and drops multipart headers.
+- [x] Fix `orders.CreateCustomOrder`, which parses the response and then returns a closed `*http.Response` instead of the typed result.
+- [x] Replace raw/opaque response types like `OrderResponse{Data json.RawMessage}` with typed models wherever the API response shape is stable enough.
+- [x] Add error handling for non-`200` success codes documented by Shiprocket, especially `202`, plus structured parsing for API error payloads.
+- [x] Add tests before broad endpoint expansion so future additions do not regress serialization, auth, or file-import flows.
+- [x] Normalize package layout and naming before endpoint count grows from the current few methods to the full published surface.
 
 Acceptance Criteria
-- The SDK has a stable client foundation that can support all documented Shiprocket modules without per-endpoint copy/paste.
-- Current known bugs in request construction, response handling, and multipart uploads are resolved before large-scale API expansion starts.
+- The SDK has a stable client foundation that can support all documented Shiprocket modules without per-endpoint copy/paste. ✅
+- Current known bugs in request construction, response handling, and multipart uploads are resolved before large-scale API expansion starts. ✅
 
 ## Coverage Snapshot — 2026-07-23
 
