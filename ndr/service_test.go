@@ -70,7 +70,7 @@ func TestNDREndpointsSendDocumentedRequests(t *testing.T) {
 			path:         "/v1/external/ndr/8373927474982/action",
 			expectedJSON: `{"action":"fake-attempt","comments":"The buyer does not want the product","phone":"9999988888","proof_audio":"https://s3-ap-southeast-1.amazonaws.com/kr-multichannel/imports/ndr/file.mp3","proof_image":"https://s3-ap-southeast-1.amazonaws.com/kr-multichannel/imports/ndr/img.jpg","remarks":"Delivery Requested","address1":"U-56, sector-23, Noida, India","address2":"Near metro station","deferred_date":"2022-08-10"}`,
 			statusCode:   http.StatusAccepted,
-			responseBody: `{"status":"Data Updated Sucessfully"}`,
+			responseBody: `{"status":"Data Updated Successfully"}`,
 			run: func(s *Service) error {
 				response, err := s.Act(context.Background(), &ActionRequest{
 					AWB:          "8373927474982",
@@ -87,7 +87,7 @@ func TestNDREndpointsSendDocumentedRequests(t *testing.T) {
 				if err != nil {
 					return err
 				}
-				if response.Status != "Data Updated Sucessfully" {
+				if response.Status != "Data Updated Successfully" {
 					t.Fatalf("unexpected response: %+v", response)
 				}
 				return nil

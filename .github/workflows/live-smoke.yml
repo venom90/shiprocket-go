@@ -1,0 +1,22 @@
+name: live-smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SHIPROCKET_LIVE_TEST_TOKEN != '' || (secrets.SHIPROCKET_LIVE_TEST_EMAIL != '' && secrets.SHIPROCKET_LIVE_TEST_PASSWORD != '') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Live smoke tests
+        env:
+          SHIPROCKET_LIVE_TEST: "1"
+          SHIPROCKET_LIVE_TEST_BASE_URL: ${{ secrets.SHIPROCKET_LIVE_TEST_BASE_URL }}
+          SHIPROCKET_LIVE_TEST_TOKEN: ${{ secrets.SHIPROCKET_LIVE_TEST_TOKEN }}
+          SHIPROCKET_LIVE_TEST_EMAIL: ${{ secrets.SHIPROCKET_LIVE_TEST_EMAIL }}
+          SHIPROCKET_LIVE_TEST_PASSWORD: ${{ secrets.SHIPROCKET_LIVE_TEST_PASSWORD }}
+        run: go test -run TestLiveSmoke -count=1 ./...

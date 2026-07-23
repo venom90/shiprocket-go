@@ -217,7 +217,7 @@ func (c *Client) Do(ctx context.Context, req *Request, out any) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	return DecodeResponse(resp, out, req.ExpectedCode...)
 }
@@ -227,7 +227,7 @@ func (c *Client) DoBytes(ctx context.Context, req *Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if !isExpectedStatus(resp.StatusCode, req.ExpectedCode) {
 		return nil, newAPIError(resp)
@@ -241,7 +241,7 @@ func (c *Client) DoDownload(ctx context.Context, req *Request) (*Download, error
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if !isExpectedStatus(resp.StatusCode, req.ExpectedCode) {
 		return nil, newAPIError(resp)

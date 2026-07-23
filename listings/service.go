@@ -46,7 +46,7 @@ func (s *Service) Import(ctx context.Context, filePath string) (*ImportResponse,
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var response ImportResponse
 	if err := s.client.Do(ctx, &internalclient.Request{

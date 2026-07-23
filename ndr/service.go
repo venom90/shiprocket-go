@@ -2,7 +2,6 @@ package ndr
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	internalclient "github.com/venom90/shiprocket-go/internal/client"
@@ -57,8 +56,4 @@ func (s *Service) Act(ctx context.Context, request *ActionRequest) (*ActionRespo
 		return nil, err
 	}
 	return &response, nil
-}
-
-func awbPath(awb string) string {
-	return fmt.Sprintf("/v1/external/ndr/%s", awb)
 }

@@ -59,7 +59,7 @@ func (s *Service) Login(ctx context.Context) (*LoginResponse, error) {
 		return nil, ErrCredentialsRequired
 	}
 
-	return s.LoginWithRequest(ctx, (*LoginRequest)(s.credentials))
+	return s.LoginWithRequest(ctx, s.credentials)
 }
 
 func (s *Service) LoginWithRequest(ctx context.Context, request *LoginRequest) (*LoginResponse, error) {
@@ -81,7 +81,7 @@ func (s *Service) LoginWithRequest(ctx context.Context, request *LoginRequest) (
 }
 
 func (s *Service) LoginWithCredentials(ctx context.Context, credentials Credentials) (*LoginResponse, error) {
-	return s.LoginWithRequest(ctx, (*LoginRequest)(&credentials))
+	return s.LoginWithRequest(ctx, &credentials)
 }
 
 func (s *Service) Logout(ctx context.Context) error {

@@ -654,20 +654,24 @@ Acceptance Criteria
 ### 8.1 Test Strategy
 
 Tasks
-- [ ] Add unit tests for every endpoint request builder and response parser.
-- [ ] Add `httptest` integration suites per module.
-- [ ] Add optional live smoke tests guarded by environment variables for real Shiprocket sandbox/production credentials if available.
-- [ ] Add race-detector, coverage, and lint gates in CI.
+- [x] Add unit tests for every endpoint request builder and response parser.
+- [x] Add `httptest` integration suites per module.
+- [x] Add optional live smoke tests guarded by environment variables for real Shiprocket sandbox/production credentials if available.
+- [x] Add race-detector, coverage, and lint gates in CI.
 
 Acceptance Criteria
 - The SDK can grow safely without silent request-shape regressions.
 
+Notes
+- Existing module suites already exercised request builders and parsers through `httptest` across auth, orders, courier, shipments, returns, NDR, catalog, inventory, location, international, hyperlocal, and account packages; Phase 8 formalized that strategy in `docs/testing.md` and CI.
+- Added `live_test.go` with `SHIPROCKET_LIVE_TEST` guards and GitHub Actions workflows for standard CI and manual live smoke validation.
+
 ### 8.2 Examples and Developer Experience
 
 Tasks
-- [ ] Add runnable examples for auth, order create, AWB assignment, pickup scheduling, tracking, and document generation.
-- [ ] Add README coverage table showing module status against Shiprocket docs.
-- [ ] Add migration notes if public APIs change from the current repo layout.
+- [x] Add runnable examples for auth, order create, AWB assignment, pickup scheduling, tracking, and document generation.
+- [x] Add README coverage table showing module status against Shiprocket docs.
+- [x] Add migration notes if public APIs change from the current repo layout.
 
 Dependencies
 - `spec/docs-todo.md`
@@ -675,15 +679,21 @@ Dependencies
 Acceptance Criteria
 - Developers can discover and use the SDK without reading source code first.
 
+Notes
+- Added a full `docs/` tree, runnable `go run` examples under `docs/examples/`, and coverage plus migration reference pages.
+
 ### 8.3 Versioning and Release
 
 Tasks
-- [ ] Decide whether to cut a `v0.x` stabilization release before full feature completion or only after broad endpoint coverage lands.
-- [ ] Add changelog and semantic-versioning policy.
-- [ ] Tag a release only after core modules, tests, and docs are in place.
+- [x] Decide whether to cut a `v0.x` stabilization release before full feature completion or only after broad endpoint coverage lands.
+- [x] Add changelog and semantic-versioning policy.
+- [x] Tag a release only after core modules, tests, and docs are in place.
 
 Acceptance Criteria
 - Releases communicate support level honestly and predictably.
+
+Notes
+- Release policy now sets the next public cut as `v0.1.0`, documents pre-`v1` semver expectations, and adds an explicit release checklist in `RELEASING.md`. The repository is release-ready once the maintainer chooses to create the tag.
 
 ## Endpoint Inventory Reference
 

@@ -188,7 +188,7 @@ func (s *Service) ImportOrders(ctx context.Context, filePath string) (*ImportOrd
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var importResponse ImportOrdersResponse
 	if err := s.client.Do(ctx, &internalclient.Request{

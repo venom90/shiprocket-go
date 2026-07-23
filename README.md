@@ -1,11 +1,10 @@
 # shiprocket-go
-Unofficial Shiprocket Go SDK
 
-This is work in progress
+Unofficial Shiprocket Go SDK with typed services for the public Shiprocket API surface documented on July 23, 2026.
 
-API Docs at: https://apidocs.shiprocket.in/
-
-Minimum supported Go version: `1.22`
+- Docs source audited against `https://apidocs.shiprocket.in/` and Shiprocket's published Postman collection on July 23, 2026.
+- Minimum supported Go version: `1.22`
+- Release posture: pre-`v1`, compatibility policy documented in [RELEASING.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/RELEASING.md)
 
 ## Installation
 
@@ -13,90 +12,65 @@ Minimum supported Go version: `1.22`
 go get github.com/venom90/shiprocket-go
 ```
 
-## Basic Usage
+## Quickstart
 
 ```go
 package main
 
 import (
-    "context"
-    "fmt"
+	"context"
+	"fmt"
+	"log"
 
-    shiprocket "github.com/venom90/shiprocket-go"
-    "github.com/venom90/shiprocket-go/orders"
+	shiprocket "github.com/venom90/shiprocket-go"
+	"github.com/venom90/shiprocket-go/orders"
 )
 
 func main() {
-    client := shiprocket.NewClient(shiprocket.Config{
-        Credentials: &shiprocket.Credentials{
-            Email:    "your-email",
-            Password: "your-password",
-        },
-    })
+	ctx := context.Background()
 
-    login, err := client.Auth.Login(context.Background())
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
+	client := shiprocket.NewClient(shiprocket.Config{
+		Credentials: &shiprocket.Credentials{
+			Email:    "ops@example.com",
+			Password: "shiprocket-password",
+		},
+	})
 
-    authedClient := shiprocket.NewClient(shiprocket.Config{
-        Token: login.Token,
-    })
+	resp, err := client.Orders.CreateCustomOrder(ctx, &orders.CreateCustomOrderRequest{
+		OrderRequestFields: orders.OrderRequestFields{
+			ReferenceOrderID:    "ref-1001",
+			OrderDate:           "2026-07-23 10:00",
+			PickupLocation:      "Primary Warehouse",
+			BillingCustomerName: "Jane Customer",
+			BillingAddress:      "Street 1",
+			BillingCity:         "Delhi",
+			BillingPincode:      "110001",
+			BillingState:        "Delhi",
+			BillingCountry:      "India",
+			BillingEmail:        "jane@example.com",
+			BillingPhone:        "9999999999",
+			PaymentMethod:       "Prepaid",
+			OrderItems: []orders.OrderItem{
+				{Name: "Widget", Sku: "W-1", Units: 1, SellingPrice: "499"},
+			},
+			SubTotal: 499,
+			Length:   10,
+			Breadth:  10,
+			Height:   10,
+			Weight:   0.5,
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    resp, err := authedClient.Orders.CreateCustomOrder(context.Background(), &orders.CreateCustomOrderRequest{
-        OrderRequestFields: orders.OrderRequestFields{
-        ReferenceOrderID:    "ref-1001",
-        OrderDate:           "2026-07-23 10:00",
-        PickupLocation:      "Primary Warehouse",
-        BillingCustomerName: "Jane",
-        BillingAddress:      "Street 1",
-        BillingCity:         "Delhi",
-        BillingPincode:      "110001",
-        BillingState:        "Delhi",
-        BillingCountry:      "India",
-        BillingEmail:        "jane@example.com",
-        BillingPhone:        "9999999999",
-        PaymentMethod:       "Prepaid",
-        OrderItems: []orders.OrderItem{
-            {Name: "Widget", Sku: "W-1", Units: 1, SellingPrice: "499"},
-        },
-        SubTotal: 499,
-        Length:   10,
-        Breadth:  10,
-        Height:   10,
-        Weight:   0.5,
-        },
-    })
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-
-    fmt.Println(resp.ShiprocketOrderID)
+	fmt.Println(resp.ShiprocketOrderID)
 }
 ```
 
-## Authentication Notes
+## Status
 
-- `client.Auth.Login(ctx)` uses the credentials configured on `shiprocket.NewClient`.
-- `client.Auth.LoginWithRequest(ctx, &shiprocket.LoginRequest{...})` is available when you want to supply credentials explicitly per call.
-- `client.Auth.Logout(ctx)` uses the token already configured on the client.
-- `client.Auth.LogoutToken(ctx, token)` is available when you need to revoke a specific bearer token without rebuilding the client.
-- Token resolution precedence is: explicit `TokenSource`, then static `Token`, then credential-backed lazy login when `Credentials` are configured without the other two.
-- Credential-backed clients now log in on demand, cache the bearer token in memory, and coalesce concurrent token acquisition so only one login request is in flight at a time.
-- `client.Auth.Logout(ctx)` and `client.Auth.LogoutToken(ctx, token)` invalidate the managed in-memory token cache after successful logout.
-- For production integrations, prefer a long-lived bearer token or a custom `TokenSource` when you already have an external token lifecycle manager.
-- Shiprocket's public auth response currently exposes only the bearer token, not expiry metadata, so the SDK does not attempt proactive refresh scheduling. A fresh login happens lazily when the managed cache is empty.
-
-## Public Entry Points
-
-- Root SDK client: `github.com/venom90/shiprocket-go`
-- Compatibility wrappers:
-  - `github.com/venom90/shiprocket-go/auth`
-  - `github.com/venom90/shiprocket-go/orders`
-
-New integrations should prefer the root client and service registration pattern:
+Core services are available through the root client:
 
 - `client.Auth`
 - `client.Orders`
@@ -114,55 +88,49 @@ New integrations should prefer the root client and service registration pattern:
 - `client.Shipments`
 - `client.NDR`
 
-## Downloading Generated Artifacts
+Compatibility wrappers remain available for older integrations, but new code should prefer the root client.
 
-Printable shipment APIs such as manifest, label, invoice, and combined label+invoice return file URLs. Use `client.Shipments.DownloadArtifact(ctx, url)` when you want to fetch the generated PDF through the SDK's shared HTTP client:
+## Coverage
 
-```go
-label, err := client.Shipments.GenerateLabel(ctx, &shipment.GenerateLabelRequest{
-    ShipmentID: []int64{16104408},
-})
-if err != nil {
-    return
-}
+| Module | Status | Notes |
+| --- | --- | --- |
+| Authentication | Complete | Login, logout, credential-backed token lifecycle |
+| Orders | Complete | Custom, channel, update, cancel, fulfill, map, import, list, detail, export |
+| Courier and Pickup | Complete | Serviceability, courier list, AWB, pickup, blocked pincodes, pickup addresses |
+| Shipments and Tracking | Complete | List, detail, cancel, labels, manifests, invoice, tracking variants |
+| Returns and NDR | Complete | Returns, exchanges, updates, return serviceability/AWB, NDR list/detail/action |
+| Catalog and Inventory | Complete | Products, listings, channels, inventory |
+| International and Hyperlocal | Complete | Dedicated international endpoints plus documented aliases and hyperlocal wrapper layer |
+| Account and Billing | Complete | Wallet balance, statement, discrepancy, import result checks |
 
-pdf, err := client.Shipments.DownloadArtifact(ctx, label.LabelURL)
-if err != nil {
-    return
-}
+Detailed path-to-method mapping lives in [docs/reference/coverage.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/reference/coverage.md).
 
-_ = pdf.FileName
-_ = pdf.Body
-```
+## Docs
 
-## Reverse Logistics And NDR
+- [Docs index](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/index.md)
+- [Getting started](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/getting-started.md)
+- [Client configuration](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/client.md)
+- [Orders](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/orders.md)
+- [Couriers](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/couriers.md)
+- [Shipments](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/shipments.md)
+- [Tracking](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/tracking.md)
+- [Returns and NDR](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/returns-and-ndr.md)
+- [Catalog](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/catalog.md)
+- [International](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/international.md)
+- [Account and billing](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/account-and-billing.md)
+- [Errors](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/errors.md)
+- [Testing](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/testing.md)
+- [Migration notes](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/reference/migration.md)
 
-Return and exchange workflows are available through `client.Returns`, including return-specific serviceability and AWB assignment helpers that automatically set `is_return`.
+## Examples
 
-For NDR remediation, use `client.NDR` with the typed action constants:
+Runnable example programs live under [docs/examples](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/examples). Each one can be executed with `go run ./docs/examples/<name>` after setting the documented environment variables.
 
-```go
-_, err = client.NDR.Act(ctx, &ndr.ActionRequest{
-    AWB:      "8373927474982",
-    Action:   ndr.ActionReattempt,
-    Comments: "Customer requested reattempt tomorrow",
-    Phone:    "9999988888",
-})
-if err != nil {
-    return
-}
-```
+## Testing and CI
 
-## Catalog And Inventory
+- `go test ./...`
+- `go test -race ./...`
+- `go test -coverprofile=coverage.out ./...`
+- `golangci-lint run`
 
-Catalog surfaces are available through `client.Products`, `client.Listings`, `client.Channels`, and `client.Inventory`.
-
-- Product samples are direct CSV downloads through `client.Products.DownloadSample(ctx)`.
-- Listing exports and listing samples currently return JSON payloads with `download_url`, so they are exposed through typed URL responses on `client.Listings`.
-
-## International, Hyperlocal, And Account APIs
-
-- `client.Location` covers country list, country-zone lookup, and postcode/locality lookup.
-- `client.International` covers international KYC, bank details, order create/update, wrapper shipment creation, international serviceability, AWB assignment, manifest generation, and the documented international tracking and pickup aliases.
-- `client.Hyperlocal` is an explicit convenience layer over the shared domestic services and automatically applies the hyperlocal serviceability flag when needed.
-- `client.Account` covers wallet balance, account statement, billing discrepancy, and file-import result inspection.
+GitHub Actions definitions live in [.github/workflows/ci.yml](/Users/tirumalrao/workspace/venom90/shiprocket-go/.github/workflows/ci.yml) and [.github/workflows/live-smoke.yml](/Users/tirumalrao/workspace/venom90/shiprocket-go/.github/workflows/live-smoke.yml).

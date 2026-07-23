@@ -203,7 +203,7 @@ func (s *Service) DownloadArtifact(ctx context.Context, artifactURL string) (*in
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
 		return nil, internalclient.DecodeResponse(response, nil)

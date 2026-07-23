@@ -18,11 +18,11 @@ func TestProductEndpoints(t *testing.T) {
 	trueValue := true
 	tests := []struct {
 		name string
-		run  func(t *testing.T, s *Service)
+		run  func(t *testing.T)
 	}{
 		{
 			name: "list products",
-			run: func(t *testing.T, s *Service) {
+			run: func(t *testing.T) {
 				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					if r.URL.Path != "/v1/external/products" {
 						t.Fatalf("unexpected path: %s", r.URL.Path)
@@ -33,7 +33,7 @@ func TestProductEndpoints(t *testing.T) {
 					_, _ = w.Write([]byte(`{"data":[{"id":17484610,"sku":"chakra123","hsn":"441122","name":"Kunai","description":"","category_code":"default","category_name":"Default Category","category_tax_code":"","image":"","weight":"0 kg","size":"","cost_price":"0.00","mrp":"0.00","tax_code":"default","low_stock":0,"ean":"","upc":"","isbn":"","created_at":"31 Jul 2019 12:37 PM","updated_at":"31 Jul 2019 03:18 PM","quantity":41,"color":"","brand":"","dimensions":"10 x 10 x 10 cm","status":"INACTIVE","type":"Single"}],"meta":{"pagination":{"total":12080,"count":15,"per_page":15,"current_page":1,"total_pages":806,"links":{"next":"https://apiv2.shiprocket.in/v1/external/products?page=2"}}}}`))
 				}))
 				defer server.Close()
-				s = NewService(internalclient.New(server.URL, internalclient.WithToken("secret")))
+				s := NewService(internalclient.New(server.URL, internalclient.WithToken("secret")))
 				resp, err := s.List(context.Background(), &ListParams{Page: 5, PerPage: 2, Sort: "ASC", SortBy: "sku", Filter: "11223344", FilterBy: "id"})
 				if err != nil || len(resp.Data) != 1 || resp.Data[0].SKU != "chakra123" {
 					t.Fatalf("unexpected response: %+v err=%v", resp, err)
@@ -42,7 +42,7 @@ func TestProductEndpoints(t *testing.T) {
 		},
 		{
 			name: "get product",
-			run: func(t *testing.T, s *Service) {
+			run: func(t *testing.T) {
 				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					if r.URL.Path != "/v1/external/products/show/17484610" {
 						t.Fatalf("unexpected path: %s", r.URL.Path)
@@ -50,7 +50,7 @@ func TestProductEndpoints(t *testing.T) {
 					_, _ = w.Write([]byte(`{"data":{"id":17484610,"sku":"chakra123","name":"Kunai","description":"","category_code":"","category_name":"","category_tax_code":"","image":"","weight":"0.000","size":"","cost_price":"0.00","mrp":"0.00","tax_code":"","low_stock":0,"ean":"","upc":"","isbn":"","created_at":"31 Jul 2019 12:37 PM","updated_at":"31 Jul 2019 03:18 PM","quantity":41,"color":"","brand":"","dimensions":"0.00 x 0.00 x 0.00","status":"INACTIVE","is_combo":0}}`))
 				}))
 				defer server.Close()
-				s = NewService(internalclient.New(server.URL, internalclient.WithToken("secret")))
+				s := NewService(internalclient.New(server.URL, internalclient.WithToken("secret")))
 				resp, err := s.Get(context.Background(), &GetRequest{ProductID: "17484610"})
 				if err != nil || resp.Data.ID != 17484610 {
 					t.Fatalf("unexpected response: %+v err=%v", resp, err)
@@ -59,7 +59,7 @@ func TestProductEndpoints(t *testing.T) {
 		},
 		{
 			name: "create product",
-			run: func(t *testing.T, s *Service) {
+			run: func(t *testing.T) {
 				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					if r.URL.Path != "/v1/external/products" || r.Method != http.MethodPost {
 						t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
@@ -74,7 +74,7 @@ func TestProductEndpoints(t *testing.T) {
 					w.WriteHeader(http.StatusCreated)
 				}))
 				defer server.Close()
-				s = NewService(internalclient.New(server.URL, internalclient.WithToken("secret")))
+				s := NewService(internalclient.New(server.URL, internalclient.WithToken("secret")))
 				_, err := s.Create(context.Background(), &CreateRequest{
 					Name:         "Batman451",
 					CategoryCode: "default",
@@ -98,7 +98,7 @@ func TestProductEndpoints(t *testing.T) {
 		},
 		{
 			name: "convert to qc",
-			run: func(t *testing.T, s *Service) {
+			run: func(t *testing.T) {
 				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					if r.URL.Path != "/v1/external/products/qc-product-update/17484610" {
 						t.Fatalf("unexpected path: %s", r.URL.Path)
@@ -113,7 +113,7 @@ func TestProductEndpoints(t *testing.T) {
 					_, _ = w.Write([]byte(`{"status":200,"message":"Product details updated successfully!"}`))
 				}))
 				defer server.Close()
-				s = NewService(internalclient.New(server.URL, internalclient.WithToken("secret")))
+				s := NewService(internalclient.New(server.URL, internalclient.WithToken("secret")))
 				resp, err := s.ConvertToQC(context.Background(), &ConvertToQCRequest{
 					ProductID: "17484610",
 					Payload: &ConvertToQCPayload{
@@ -136,7 +136,7 @@ func TestProductEndpoints(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.run(t, nil)
+			tt.run(t)
 		})
 	}
 }

@@ -254,7 +254,7 @@ func TestOrderMutationEndpointsSendDocumentedPayloads(t *testing.T) {
 			path:         "/v1/external/orders/mapping",
 			body:         &MapUnmappedProductsRequest{Data: []MapUnmappedProductRequest{{ShiprocketOrderID: 14303681, ShiprocketOrderProductID: 16487731, MasterSKU: "delta123"}}},
 			expectedJSON: `{"data":[{"order_id":14303681,"order_product_id":16487731,"master_sku":"delta123"}]}`,
-			responseBody: `[{"data":{"order_id":14303681,"order_product_id":16487731,"master_sku":"delta123"},"status_code":200,"success":true,"message":"Product mapped sucessfully."}]`,
+			responseBody: `[{"data":{"order_id":14303681,"order_product_id":16487731,"master_sku":"delta123"},"status_code":200,"success":true,"message":"Product mapped successfully."}]`,
 			run: func(s *Service) error {
 				response, err := s.MapOrders(context.Background(), &MapUnmappedProductsRequest{
 					Data: []MapUnmappedProductRequest{{ShiprocketOrderID: 14303681, ShiprocketOrderProductID: 16487731, MasterSKU: "delta123"}},
@@ -399,7 +399,7 @@ func TestOrderMutationNegativeResponses(t *testing.T) {
 
 	t.Run("mapping partial failure", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			_, _ = w.Write([]byte(`[{"data":{"order_id":14303681,"order_product_id":16487731,"master_sku":"delta123"},"status_code":200,"success":true,"message":"Product mapped sucessfully."},{"data":{"order_id":14303681,"order_product_id":999,"master_sku":"missing"},"status_code":422,"success":false,"message":"Product mapping failed","errors":{"master_sku":["SKU not found."]}}]`))
+			_, _ = w.Write([]byte(`[{"data":{"order_id":14303681,"order_product_id":16487731,"master_sku":"delta123"},"status_code":200,"success":true,"message":"Product mapped successfully."},{"data":{"order_id":14303681,"order_product_id":999,"master_sku":"missing"},"status_code":422,"success":false,"message":"Product mapping failed","errors":{"master_sku":["SKU not found."]}}]`))
 		}))
 		defer server.Close()
 
