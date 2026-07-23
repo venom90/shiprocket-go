@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	internalclient "github.com/venom90/shiprocket-go/internal/client"
 )
@@ -27,11 +28,11 @@ func NewService(client *internalclient.Client) *Service {
 // Create Custom Order
 // Use this API to create a quick custom order. Quick orders are the ones where we do not store the product details in the master catalogue.
 func (o *OrderService) CreateCustomOrder() (*CustomOrderResponse, error) {
-	return NewService(o.client()).CreateCustomOrder(context.Background(), (*CreateCustomOrderRequest)(&o.Order))
+	return NewService(o.client()).CreateCustomOrder(context.Background(), &CreateCustomOrderRequest{OrderRequestFields: o.Order})
 }
 
 func (o *OrderService) CreateCustomOrderContext(ctx context.Context, order *Order) (*CustomOrderResponse, error) {
-	return NewService(o.client()).CreateCustomOrder(ctx, (*CreateCustomOrderRequest)(order))
+	return NewService(o.client()).CreateCustomOrder(ctx, &CreateCustomOrderRequest{OrderRequestFields: *order})
 }
 
 func (s *Service) CreateCustomOrder(ctx context.Context, order *CreateCustomOrderRequest) (*CustomOrderResponse, error) {
@@ -51,7 +52,7 @@ func (s *Service) CreateCustomOrder(ctx context.Context, order *CreateCustomOrde
 // Create Channel Specific Order
 // This API can be used to create a custom order, the same as the Custom order API, except that you have to specify and select a custom channel to create the order.
 func (o *OrderService) CreateChannelSpecificOrder(order *Order) (*ChannelSpecificOrderResponse, error) {
-	return NewService(o.client()).CreateChannelSpecificOrder(context.Background(), (*CreateChannelSpecificOrderRequest)(order))
+	return NewService(o.client()).CreateChannelSpecificOrder(context.Background(), &CreateChannelSpecificOrderRequest{OrderRequestFields: *order})
 }
 
 func (s *Service) CreateChannelSpecificOrder(ctx context.Context, order *CreateChannelSpecificOrderRequest) (*ChannelSpecificOrderResponse, error) {
@@ -69,12 +70,12 @@ func (s *Service) CreateChannelSpecificOrder(ctx context.Context, order *CreateC
 }
 
 // Change/Update Pickup Location of Created Orders
-func (o *OrderService) UpdatePickupLocation(update *PickupLocationUpdate) (*PickupLocationUpdateResponse, error) {
+func (o *OrderService) UpdatePickupLocation(update *UpdatePickupLocationRequest) (*UpdatePickupLocationResponse, error) {
 	return NewService(o.client()).UpdatePickupLocation(context.Background(), update)
 }
 
-func (s *Service) UpdatePickupLocation(ctx context.Context, update *PickupLocationUpdate) (*PickupLocationUpdateResponse, error) {
-	var response PickupLocationUpdateResponse
+func (s *Service) UpdatePickupLocation(ctx context.Context, update *UpdatePickupLocationRequest) (*UpdatePickupLocationResponse, error) {
+	var response UpdatePickupLocationResponse
 	err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPatch,
 		Path:     "/v1/external/orders/address/pickup",
@@ -88,12 +89,12 @@ func (s *Service) UpdatePickupLocation(ctx context.Context, update *PickupLocati
 }
 
 // Update Customer Delivery Address
-func (o *OrderService) UpdateCustomerDeliveryAddress(update *ShippingAddressUpdate) (*ShippingAddressUpdateResponse, error) {
+func (o *OrderService) UpdateCustomerDeliveryAddress(update *UpdateCustomerDeliveryAddressRequest) (*UpdateCustomerDeliveryAddressResponse, error) {
 	return NewService(o.client()).UpdateCustomerDeliveryAddress(context.Background(), update)
 }
 
-func (s *Service) UpdateCustomerDeliveryAddress(ctx context.Context, update *ShippingAddressUpdate) (*ShippingAddressUpdateResponse, error) {
-	var response ShippingAddressUpdateResponse
+func (s *Service) UpdateCustomerDeliveryAddress(ctx context.Context, update *UpdateCustomerDeliveryAddressRequest) (*UpdateCustomerDeliveryAddressResponse, error) {
+	var response UpdateCustomerDeliveryAddressResponse
 	err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPost,
 		Path:     "/v1/external/orders/address/update",
@@ -108,7 +109,7 @@ func (s *Service) UpdateCustomerDeliveryAddress(ctx context.Context, update *Shi
 
 // Update Order
 func (o *OrderService) UpdateOrder(orderUpdate *Order) (*OrderUpdateResponse, error) {
-	return NewService(o.client()).UpdateOrder(context.Background(), (*UpdateOrderRequest)(orderUpdate))
+	return NewService(o.client()).UpdateOrder(context.Background(), &UpdateOrderRequest{OrderRequestFields: *orderUpdate})
 }
 
 func (s *Service) UpdateOrder(ctx context.Context, orderUpdate *UpdateOrderRequest) (*OrderUpdateResponse, error) {
@@ -126,11 +127,11 @@ func (s *Service) UpdateOrder(ctx context.Context, orderUpdate *UpdateOrderReque
 }
 
 // Cancel an Order
-func (o *OrderService) CancelOrders(orderCancel *OrderCancel) error {
+func (o *OrderService) CancelOrders(orderCancel *CancelOrdersRequest) error {
 	return NewService(o.client()).CancelOrders(context.Background(), orderCancel)
 }
 
-func (s *Service) CancelOrders(ctx context.Context, orderCancel *OrderCancel) error {
+func (s *Service) CancelOrders(ctx context.Context, orderCancel *CancelOrdersRequest) error {
 	return s.client.Do(ctx, &internalclient.Request{
 		Method:       http.MethodPost,
 		Path:         "/v1/external/orders/cancel",
@@ -140,12 +141,12 @@ func (s *Service) CancelOrders(ctx context.Context, orderCancel *OrderCancel) er
 }
 
 // Add Inventory for Ordered Product
-func (o *OrderService) AddInventoryForOrderedProduct(orderFulfill *OrderFulfill) ([]FulfillResponse, error) {
+func (o *OrderService) AddInventoryForOrderedProduct(orderFulfill *FulfillOrderItemsRequest) (FulfillmentBatchResponse, error) {
 	return NewService(o.client()).AddInventoryForOrderedProduct(context.Background(), orderFulfill)
 }
 
-func (s *Service) AddInventoryForOrderedProduct(ctx context.Context, orderFulfill *OrderFulfill) ([]FulfillResponse, error) {
-	var fulfillResponses []FulfillResponse
+func (s *Service) AddInventoryForOrderedProduct(ctx context.Context, orderFulfill *FulfillOrderItemsRequest) (FulfillmentBatchResponse, error) {
+	var fulfillResponses FulfillmentBatchResponse
 	if err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPatch,
 		Path:     "/v1/external/orders/fulfill",
@@ -158,12 +159,12 @@ func (s *Service) AddInventoryForOrderedProduct(ctx context.Context, orderFulfil
 }
 
 // Map Unmapped Products
-func (o *OrderService) MapOrders(orderMapping *OrderMapping) ([]MappingResponse, error) {
+func (o *OrderService) MapOrders(orderMapping *MapUnmappedProductsRequest) (MappingBatchResponse, error) {
 	return NewService(o.client()).MapOrders(context.Background(), orderMapping)
 }
 
-func (s *Service) MapOrders(ctx context.Context, orderMapping *OrderMapping) ([]MappingResponse, error) {
-	var mappingResponses []MappingResponse
+func (s *Service) MapOrders(ctx context.Context, orderMapping *MapUnmappedProductsRequest) (MappingBatchResponse, error) {
+	var mappingResponses MappingBatchResponse
 	if err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPatch,
 		Path:     "/v1/external/orders/mapping",
@@ -176,18 +177,18 @@ func (s *Service) MapOrders(ctx context.Context, orderMapping *OrderMapping) ([]
 }
 
 // Import Orders in Bulk
-func (o *OrderService) ImportOrders(filePath string) (*ImportResponse, error) {
+func (o *OrderService) ImportOrders(filePath string) (*ImportOrdersResponse, error) {
 	return NewService(o.client()).ImportOrders(context.Background(), filePath)
 }
 
-func (s *Service) ImportOrders(ctx context.Context, filePath string) (*ImportResponse, error) {
+func (s *Service) ImportOrders(ctx context.Context, filePath string) (*ImportOrdersResponse, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	var importResponse ImportResponse
+	var importResponse ImportOrdersResponse
 	if err := s.client.Do(ctx, &internalclient.Request{
 		Method: http.MethodPost,
 		Path:   "/v1/external/orders/import",
@@ -195,7 +196,7 @@ func (s *Service) ImportOrders(ctx context.Context, filePath string) (*ImportRes
 			Files: []internalclient.MultipartFile{
 				{
 					FieldName: "file",
-					FileName:  file.Name(),
+					FileName:  filepath.Base(filePath),
 					Reader:    file,
 				},
 			},

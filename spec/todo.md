@@ -208,19 +208,26 @@ Documented Endpoints
 - [x] `POST /v1/external/orders/import` implemented but currently broken
 
 Tasks
-- [ ] Re-model the core order payloads from the docs instead of carrying forward the current minimal structs unchanged.
-- [ ] Split requests and responses per endpoint instead of reusing one `Order` struct for create and update flows.
-- [ ] Implement CSV bulk order import correctly with multipart upload.
-- [ ] Add typed partial-success handling where Shiprocket returns mixed success/failure arrays.
-- [ ] Add clear distinction between reference order IDs and Shiprocket order IDs in public API naming.
+- [x] Re-model the core order payloads from the docs instead of carrying forward the current minimal structs unchanged.
+- [x] Split requests and responses per endpoint instead of reusing one `Order` struct for create and update flows.
+- [x] Implement CSV bulk order import correctly with multipart upload.
+- [x] Add typed partial-success handling where Shiprocket returns mixed success/failure arrays.
+- [x] Add clear distinction between reference order IDs and Shiprocket order IDs in public API naming.
+
+Notes
+- Verified on July 23, 2026 against Shiprocket's live docs at `https://apidocs.shiprocket.in/` plus the published Shiprocket Postman collection examples for all nine order-mutation endpoints.
+- The primary SDK surface now uses endpoint-specific request types such as `CreateCustomOrderRequest`, `UpdatePickupLocationRequest`, `CancelOrdersRequest`, `FulfillOrderItemsRequest`, and `MapUnmappedProductsRequest`.
+- Public naming now distinguishes external/reference order identifiers from Shiprocket-generated identifiers through fields like `ReferenceOrderID`, `ShiprocketOrderID`, `ShiprocketOrderIDs`, and `ShiprocketOrderProductID`.
+- Bulk import now uploads the CSV as multipart form data with the correct `file` part and the source file basename instead of the full local path.
+- Batch fulfill and mapping APIs now return typed batch response collections with success/failure helpers so partial failures are inspectable without decoding raw arrays manually.
 
 Testing
-- [ ] Add golden request tests for all nine endpoints.
-- [ ] Add multipart upload test for import flow.
-- [ ] Add negative tests for validation and partial-failure responses.
+- [x] Add golden request tests for all nine endpoints.
+- [x] Add multipart upload test for import flow.
+- [x] Add negative tests for validation and partial-failure responses.
 
 Acceptance Criteria
-- All documented create/update/import order operations are implemented and tested with typed responses.
+- All documented create/update/import order operations are implemented and tested with typed responses. ✅
 
 ### 2.2 Orders Read APIs
 

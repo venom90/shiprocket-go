@@ -43,8 +43,8 @@ const (
 	OrderFilterByChannelOrderID  OrderFilterBy = "channel_order_id"
 )
 
-type Order struct {
-	OrderID               string         `json:"order_id"`
+type OrderRequestFields struct {
+	ReferenceOrderID      string         `json:"order_id"`
 	OrderDate             string         `json:"order_date"`
 	PickupLocation        string         `json:"pickup_location"`
 	ChannelID             FlexibleString `json:"channel_id,omitempty"`
@@ -74,13 +74,13 @@ type Order struct {
 	ShippingState         string         `json:"shipping_state,omitempty"`
 	ShippingEmail         string         `json:"shipping_email,omitempty"`
 	ShippingPhone         string         `json:"shipping_phone,omitempty"`
-	IsDocument            FlexibleBool   `json:"is_document,omitempty"`
+	IsDocument            FlexibleBool   `json:"is_document"`
 	OrderItems            []OrderItem    `json:"order_items"`
 	PaymentMethod         PaymentMethod  `json:"payment_method"`
-	ShippingCharges       FlexibleFloat  `json:"shipping_charges,omitempty"`
-	GiftwrapCharges       FlexibleFloat  `json:"giftwrap_charges,omitempty"`
-	TransactionCharges    FlexibleFloat  `json:"transaction_charges,omitempty"`
-	TotalDiscount         FlexibleFloat  `json:"total_discount,omitempty"`
+	ShippingCharges       FlexibleFloat  `json:"shipping_charges"`
+	GiftwrapCharges       FlexibleFloat  `json:"giftwrap_charges"`
+	TransactionCharges    FlexibleFloat  `json:"transaction_charges"`
+	TotalDiscount         FlexibleFloat  `json:"total_discount"`
 	SubTotal              FlexibleFloat  `json:"sub_total"`
 	Length                FlexibleFloat  `json:"length"`
 	Breadth               FlexibleFloat  `json:"breadth"`
@@ -92,9 +92,20 @@ type Order struct {
 	OrderType             FlexibleString `json:"order_type,omitempty"`
 }
 
-type CreateCustomOrderRequest = Order
-type CreateChannelSpecificOrderRequest = Order
-type UpdateOrderRequest = Order
+type CreateCustomOrderRequest struct {
+	OrderRequestFields
+}
+
+type CreateChannelSpecificOrderRequest struct {
+	OrderRequestFields
+}
+
+type UpdateOrderRequest struct {
+	OrderRequestFields
+}
+
+// Deprecated: use endpoint-specific request types instead.
+type Order = OrderRequestFields
 
 type OrderItem struct {
 	Name         string         `json:"name"`
@@ -107,7 +118,7 @@ type OrderItem struct {
 }
 
 type CustomOrderResponse struct {
-	OrderID                int64           `json:"order_id"`
+	ShiprocketOrderID      int64           `json:"order_id"`
 	ShipmentID             int64           `json:"shipment_id"`
 	Status                 string          `json:"status"`
 	StatusCode             int             `json:"status_code"`
@@ -118,23 +129,23 @@ type CustomOrderResponse struct {
 }
 
 type ChannelSpecificOrderResponse struct {
-	OrderID    int64  `json:"order_id"`
-	ShipmentID int64  `json:"shipment_id"`
-	Status     string `json:"status"`
-	StatusCode int    `json:"status_code"`
+	ShiprocketOrderID int64  `json:"order_id"`
+	ShipmentID        int64  `json:"shipment_id"`
+	Status            string `json:"status"`
+	StatusCode        int    `json:"status_code"`
 }
 
-type PickupLocationUpdate struct {
-	OrderID        []int64 `json:"order_id"`
-	PickupLocation string  `json:"pickup_location"`
+type UpdatePickupLocationRequest struct {
+	ShiprocketOrderIDs []int64 `json:"order_id"`
+	PickupLocation     string  `json:"pickup_location"`
 }
 
-type PickupLocationUpdateResponse struct {
+type UpdatePickupLocationResponse struct {
 	Message string `json:"message"`
 }
 
-type ShippingAddressUpdate struct {
-	OrderID               int64  `json:"order_id"`
+type UpdateCustomerDeliveryAddressRequest struct {
+	ShiprocketOrderID     int64  `json:"order_id"`
 	ShippingCustomerName  string `json:"shipping_customer_name"`
 	ShippingPhone         string `json:"shipping_phone"`
 	ShippingAddress       string `json:"shipping_address"`
@@ -147,64 +158,155 @@ type ShippingAddressUpdate struct {
 	BillingAlternatePhone string `json:"billing_alternate_phone,omitempty"`
 }
 
-type ShippingAddressUpdateResponse struct {
+type UpdateCustomerDeliveryAddressResponse struct {
 	Message string `json:"message"`
 }
 
 type OrderUpdateResponse struct {
-	Success          bool           `json:"success"`
-	PartiallyUpdate  bool           `json:"partially_update"`
-	NotUpdatedFields FlexibleString `json:"not_updated_fields"`
-	OrderID          int64          `json:"order_id"`
-	ShipmentID       int64          `json:"shipment_id"`
-	NewOrderStatus   string         `json:"new_order_status"`
-	OldOrderStatus   FlexibleInt    `json:"old_order_status"`
-	AwbCode          FlexibleString `json:"awb_code"`
-	CourierCompanyID FlexibleString `json:"courier_company_id"`
-	CourierName      FlexibleString `json:"courier_name"`
+	Success           bool           `json:"success"`
+	PartiallyUpdate   bool           `json:"partially_update"`
+	NotUpdatedFields  FlexibleString `json:"not_updated_fields"`
+	ShiprocketOrderID int64          `json:"order_id"`
+	ShipmentID        int64          `json:"shipment_id"`
+	NewOrderStatus    string         `json:"new_order_status"`
+	OldOrderStatus    FlexibleInt    `json:"old_order_status"`
+	AwbCode           FlexibleString `json:"awb_code"`
+	CourierCompanyID  FlexibleString `json:"courier_company_id"`
+	CourierName       FlexibleString `json:"courier_name"`
 }
 
-type OrderCancel struct {
-	Ids []int64 `json:"ids"`
+type CancelOrdersRequest struct {
+	ShiprocketOrderIDs []int64 `json:"ids"`
 }
 
-type OrderFulfill struct {
-	Data []OrderFulfillData `json:"data"`
+type FulfillOrderItemsRequest struct {
+	Data []FulfillOrderItemRequest `json:"data"`
 }
 
-type OrderFulfillData struct {
-	OrderId        int64             `json:"order_id"`
-	OrderProductId int64             `json:"order_product_id"`
-	Quantity       FlexibleInt       `json:"quantity"`
-	Action         FulfillmentAction `json:"action"`
+type FulfillOrderItemRequest struct {
+	ShiprocketOrderID        int64             `json:"order_id"`
+	ShiprocketOrderProductID int64             `json:"order_product_id"`
+	Quantity                 FlexibleInt       `json:"quantity"`
+	Action                   FulfillmentAction `json:"action"`
 }
 
-type FulfillResponse struct {
-	Data    OrderFulfillData `json:"data"`
-	Success bool             `json:"success"`
-	Message string           `json:"message"`
+type FulfillOrderItemResult struct {
+	Data       FulfillOrderItemRequest `json:"data"`
+	Success    bool                    `json:"success"`
+	Message    string                  `json:"message"`
+	StatusCode int                     `json:"status_code,omitempty"`
+	Errors     json.RawMessage         `json:"errors,omitempty"`
 }
 
-type OrderMapping struct {
-	Data []OrderMappingData `json:"data"`
+type FulfillmentBatchResponse []FulfillOrderItemResult
+
+func (r FulfillmentBatchResponse) Successes() []FulfillOrderItemResult {
+	results := make([]FulfillOrderItemResult, 0, len(r))
+	for _, item := range r {
+		if item.Success {
+			results = append(results, item)
+		}
+	}
+	return results
 }
 
-type OrderMappingData struct {
-	OrderId        int64  `json:"order_id"`
-	OrderProductId int64  `json:"order_product_id"`
-	MasterSKU      string `json:"master_sku"`
+func (r FulfillmentBatchResponse) Failures() []FulfillOrderItemResult {
+	results := make([]FulfillOrderItemResult, 0, len(r))
+	for _, item := range r {
+		if !item.Success {
+			results = append(results, item)
+		}
+	}
+	return results
 }
 
-type MappingResponse struct {
-	Data       OrderMappingData `json:"data"`
-	StatusCode int              `json:"status_code"`
-	Success    bool             `json:"success"`
-	Message    string           `json:"message"`
+func (r FulfillmentBatchResponse) HasFailures() bool {
+	return len(r.Failures()) > 0
 }
 
-type ImportResponse struct {
-	ID int64 `json:"id"`
+type MapUnmappedProductsRequest struct {
+	Data []MapUnmappedProductRequest `json:"data"`
 }
+
+type MapUnmappedProductRequest struct {
+	ShiprocketOrderID        int64  `json:"order_id"`
+	ShiprocketOrderProductID int64  `json:"order_product_id"`
+	MasterSKU                string `json:"master_sku"`
+}
+
+type MapUnmappedProductResult struct {
+	Data       MapUnmappedProductRequest `json:"data"`
+	StatusCode int                       `json:"status_code"`
+	Success    bool                      `json:"success"`
+	Message    string                    `json:"message"`
+	Errors     json.RawMessage           `json:"errors,omitempty"`
+}
+
+type MappingBatchResponse []MapUnmappedProductResult
+
+func (r MappingBatchResponse) Successes() []MapUnmappedProductResult {
+	results := make([]MapUnmappedProductResult, 0, len(r))
+	for _, item := range r {
+		if item.Success {
+			results = append(results, item)
+		}
+	}
+	return results
+}
+
+func (r MappingBatchResponse) Failures() []MapUnmappedProductResult {
+	results := make([]MapUnmappedProductResult, 0, len(r))
+	for _, item := range r {
+		if !item.Success {
+			results = append(results, item)
+		}
+	}
+	return results
+}
+
+func (r MappingBatchResponse) HasFailures() bool {
+	return len(r.Failures()) > 0
+}
+
+type ImportOrdersResponse struct {
+	ImportID int64 `json:"id"`
+}
+
+// Deprecated: use UpdatePickupLocationRequest instead.
+type PickupLocationUpdate = UpdatePickupLocationRequest
+
+// Deprecated: use UpdatePickupLocationResponse instead.
+type PickupLocationUpdateResponse = UpdatePickupLocationResponse
+
+// Deprecated: use UpdateCustomerDeliveryAddressRequest instead.
+type ShippingAddressUpdate = UpdateCustomerDeliveryAddressRequest
+
+// Deprecated: use UpdateCustomerDeliveryAddressResponse instead.
+type ShippingAddressUpdateResponse = UpdateCustomerDeliveryAddressResponse
+
+// Deprecated: use CancelOrdersRequest instead.
+type OrderCancel = CancelOrdersRequest
+
+// Deprecated: use FulfillOrderItemsRequest instead.
+type OrderFulfill = FulfillOrderItemsRequest
+
+// Deprecated: use FulfillOrderItemRequest instead.
+type OrderFulfillData = FulfillOrderItemRequest
+
+// Deprecated: use FulfillmentBatchResponse instead.
+type FulfillResponse = FulfillOrderItemResult
+
+// Deprecated: use MapUnmappedProductsRequest instead.
+type OrderMapping = MapUnmappedProductsRequest
+
+// Deprecated: use MapUnmappedProductRequest instead.
+type OrderMappingData = MapUnmappedProductRequest
+
+// Deprecated: use MappingBatchResponse instead.
+type MappingResponse = MapUnmappedProductResult
+
+// Deprecated: use ImportOrdersResponse instead.
+type ImportResponse = ImportOrdersResponse
 
 type OrdersListParams struct {
 	Page           int

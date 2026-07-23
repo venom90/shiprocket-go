@@ -104,6 +104,9 @@ func TestCreateOrderRequestRoundTripMatchesDocumentedShape(t *testing.T) {
 	if request.BillingISDCode != "+91" || request.InvoiceNumber != "INV-1" {
 		t.Fatalf("missing expanded request fields: %+v", request)
 	}
+	if request.ReferenceOrderID != "4TestOrderOct28" {
+		t.Fatalf("unexpected reference order id: %q", request.ReferenceOrderID)
+	}
 	if request.OrderItems[0].Units.Int64() != 1 {
 		t.Fatalf("unexpected item units: %v", request.OrderItems[0].Units)
 	}

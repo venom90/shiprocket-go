@@ -45,7 +45,8 @@ func main() {
     })
 
     resp, err := authedClient.Orders.CreateCustomOrder(context.Background(), &orders.CreateCustomOrderRequest{
-        OrderID:             "ref-1001",
+        OrderRequestFields: orders.OrderRequestFields{
+        ReferenceOrderID:    "ref-1001",
         OrderDate:           "2026-07-23 10:00",
         PickupLocation:      "Primary Warehouse",
         BillingCustomerName: "Jane",
@@ -65,13 +66,14 @@ func main() {
         Breadth:  10,
         Height:   10,
         Weight:   0.5,
+        },
     })
     if err != nil {
         fmt.Println(err)
         return
     }
 
-    fmt.Println(resp.OrderID)
+    fmt.Println(resp.ShiprocketOrderID)
 }
 ```
 

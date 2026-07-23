@@ -19,25 +19,27 @@ func ExampleNewClient() {
 	})
 
 	_, _ = client.Orders.CreateCustomOrder(context.Background(), &orders.CreateCustomOrderRequest{
-		OrderID:             "ref-1001",
-		OrderDate:           "2026-07-23 10:00",
-		PickupLocation:      "Primary Warehouse",
-		BillingCustomerName: "Jane",
-		BillingAddress:      "Street 1",
-		BillingCity:         "Delhi",
-		BillingPincode:      "110001",
-		BillingState:        "Delhi",
-		BillingCountry:      "India",
-		BillingEmail:        "jane@example.com",
-		BillingPhone:        "9999999999",
-		OrderItems: []orders.OrderItem{
-			{Name: "Widget", Sku: "W-1", Units: 1, SellingPrice: "499"},
+		OrderRequestFields: orders.OrderRequestFields{
+			ReferenceOrderID:    "ref-1001",
+			OrderDate:           "2026-07-23 10:00",
+			PickupLocation:      "Primary Warehouse",
+			BillingCustomerName: "Jane",
+			BillingAddress:      "Street 1",
+			BillingCity:         "Delhi",
+			BillingPincode:      "110001",
+			BillingState:        "Delhi",
+			BillingCountry:      "India",
+			BillingEmail:        "jane@example.com",
+			BillingPhone:        "9999999999",
+			OrderItems: []orders.OrderItem{
+				{Name: "Widget", Sku: "W-1", Units: 1, SellingPrice: "499"},
+			},
+			PaymentMethod: "Prepaid",
+			SubTotal:      499,
+			Length:        10,
+			Breadth:       10,
+			Height:        10,
+			Weight:        0.5,
 		},
-		PaymentMethod: "Prepaid",
-		SubTotal:      499,
-		Length:        10,
-		Breadth:       10,
-		Height:        10,
-		Weight:        0.5,
 	})
 }
