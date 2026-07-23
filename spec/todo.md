@@ -448,76 +448,97 @@ Acceptance Criteria
 ### 6.1 Products
 
 Documented Endpoints
-- [ ] `GET /v1/external/products`
-- [ ] `GET /v1/external/products/show/{product_id}`
-- [ ] `POST /v1/external/products`
-- [ ] `POST /v1/external/products/qc-product-update/{productID}`
-- [ ] `POST /v1/external/products/import`
-- [ ] `GET /v1/external/products/sample`
+- [x] `GET /v1/external/products`
+- [x] `GET /v1/external/products/show/{product_id}`
+- [x] `POST /v1/external/products`
+- [x] `POST /v1/external/products/qc-product-update/{productID}`
+- [x] `POST /v1/external/products/import`
+- [x] `GET /v1/external/products/sample`
 
 Tasks
-- [ ] Implement product listing, detail, create, QC conversion, import, and sample-download methods.
-- [ ] Confirm whether product import is multipart upload and support it accordingly.
-- [ ] Add product/request DTOs separate from order item DTOs.
+- [x] Implement product listing, detail, create, QC conversion, import, and sample-download methods.
+- [x] Confirm whether product import is multipart upload and support it accordingly.
+- [x] Add product/request DTOs separate from order item DTOs.
+
+Notes
+- Verified on July 23, 2026 against Shiprocket's live docs at `https://apidocs.shiprocket.in/` plus the published Shiprocket Postman collection. Shiprocket's public `swagger.json` and `openapi.json` endpoints are still unavailable, so the live docs and collection remain the public source of truth.
+- Added a dedicated `client.Products` service covering list, detail, create, QC conversion, bulk import, and sample download.
+- Product import is multipart form-data with a single `file` part. The SDK now uploads the file correctly and tests the multipart contract explicitly.
+- Shiprocket's current product-create example documents a `201 Created` response without a stable JSON body example, so the SDK treats successful creation as a typed success with status-based confirmation rather than inventing undocumented response fields.
+- Product sample download is a direct CSV artifact, not a JSON wrapper, so the SDK exposes it as a binary download through the shared `Download` helper surface.
 
 Testing
-- [ ] Add product CRUD and import tests.
+- [x] Add product CRUD and import tests.
 
 Acceptance Criteria
-- Product catalog APIs are first-class, typed, and usable for inventory workflows.
+- Product catalog APIs are first-class, typed, and usable for inventory workflows. ✅
 
 ### 6.2 Listings
 
 Documented Endpoints
-- [ ] `GET /v1/external/listings`
-- [ ] `POST /v1/external/listings/link`
-- [ ] `POST /v1/external/listings/import`
-- [ ] `GET /v1/external/listings/export/mapped`
-- [ ] `GET /v1/external/listings/export/unmapped`
-- [ ] `GET /v1/external/listings/sample`
+- [x] `GET /v1/external/listings`
+- [x] `POST /v1/external/listings/link`
+- [x] `POST /v1/external/listings/import`
+- [x] `GET /v1/external/listings/export/mapped`
+- [x] `GET /v1/external/listings/export/unmapped`
+- [x] `GET /v1/external/listings/sample`
 
 Tasks
-- [ ] Implement listing retrieval and channel-product mapping.
-- [ ] Implement listing import/export/sample flows.
-- [ ] Clarify which export/sample responses are direct downloads versus generated links.
+- [x] Implement listing retrieval and channel-product mapping.
+- [x] Implement listing import/export/sample flows.
+- [x] Clarify which export/sample responses are direct downloads versus generated links.
+
+Notes
+- Added a dedicated `client.Listings` service for listing list, manual product linking, bulk mapping import, mapped export, unmapped export, and sample retrieval.
+- Listing import is multipart form-data with a `file` part, while mapped export, unmapped export, and sample retrieval currently return JSON responses containing `download_url` rather than inline CSV content.
+- Listing list filters now follow the currently documented `page`, `per_page`, `sort`, `sort_by`, `filter`, and `filter_by` query parameters.
 
 Testing
-- [ ] Add list/map/import/export tests.
+- [x] Add list/map/import/export tests.
 
 Acceptance Criteria
-- Channel listing operations are fully supported.
+- Channel listing operations are fully supported. ✅
 
 ### 6.3 Channels
 
 Documented Endpoints
-- [ ] `GET /v1/external/channels`
-- [ ] `POST /v1/external/channels`
+- [x] `GET /v1/external/channels`
+- [x] `POST /v1/external/channels`
 
 Tasks
-- [ ] Implement channel listing.
-- [ ] Implement custom-channel creation.
+- [x] Implement channel listing.
+- [x] Implement custom-channel creation.
+
+Notes
+- Added a dedicated `client.Channels` service for integrated-channel inspection and custom-channel creation.
+- Channel responses are modeled with nested base-channel settings metadata so callers can inspect sync configuration and channel capabilities without decoding raw JSON manually.
 
 Testing
-- [ ] Add channel tests.
+- [x] Add channel tests.
 
 Acceptance Criteria
-- Consumers can inspect and create supported channel integrations through the SDK.
+- Consumers can inspect and create supported channel integrations through the SDK. ✅
 
 ### 6.4 Inventory
 
 Documented Endpoints
-- [ ] `GET /v1/external/inventory`
-- [ ] `PUT /v1/external/inventory/{product_id}/update`
+- [x] `GET /v1/external/inventory`
+- [x] `PUT /v1/external/inventory/{product_id}/update`
 
 Tasks
-- [ ] Implement inventory list/detail request modeling as documented.
-- [ ] Implement inventory update.
+- [x] Implement inventory list/detail request modeling as documented.
+- [x] Implement inventory update.
+
+Notes
+- Added a dedicated `client.Inventory` service for inventory list and quantity update flows.
+- Inventory list filters now match the currently documented `page`, `per_page`, `sort`, and `sort_by` query parameters.
+- Inventory update is modeled as a product-scoped `PUT` with typed `quantity` and `action` payload fields instead of an opaque map.
 
 Testing
-- [ ] Add inventory tests.
+- [x] Add inventory tests.
 
 Acceptance Criteria
-- Inventory reads and writes are covered.
+- Inventory reads and writes are covered. ✅
 
 ## 7. Phase 7 — International, Hyperlocal, and Account/Billing APIs
 

@@ -102,6 +102,10 @@ New integrations should prefer the root client and service registration pattern:
 - `client.Orders`
 - `client.Couriers`
 - `client.PickupAddresses`
+- `client.Products`
+- `client.Listings`
+- `client.Channels`
+- `client.Inventory`
 - `client.Returns`
 - `client.Shipments`
 - `client.NDR`
@@ -144,3 +148,10 @@ if err != nil {
     return
 }
 ```
+
+## Catalog And Inventory
+
+Catalog surfaces are available through `client.Products`, `client.Listings`, `client.Channels`, and `client.Inventory`.
+
+- Product samples are direct CSV downloads through `client.Products.DownloadSample(ctx)`.
+- Listing exports and listing samples currently return JSON payloads with `download_url`, so they are exposed through typed URL responses on `client.Listings`.

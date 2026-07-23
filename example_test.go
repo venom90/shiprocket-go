@@ -6,8 +6,12 @@ import (
 	"time"
 
 	shiprocket "github.com/venom90/shiprocket-go"
+	"github.com/venom90/shiprocket-go/channels"
+	"github.com/venom90/shiprocket-go/inventory"
+	"github.com/venom90/shiprocket-go/listings"
 	"github.com/venom90/shiprocket-go/ndr"
 	"github.com/venom90/shiprocket-go/orders"
+	"github.com/venom90/shiprocket-go/products"
 	"github.com/venom90/shiprocket-go/returns"
 	"github.com/venom90/shiprocket-go/shipment"
 )
@@ -86,5 +90,32 @@ func ExampleNewClient() {
 		AWB:      "8373927474982",
 		Action:   ndr.ActionReturn,
 		Comments: "Customer refused delivery",
+	})
+
+	_, _ = client.Products.Create(context.Background(), &products.CreateRequest{
+		Name:         "Batman451",
+		CategoryCode: "default",
+		Type:         "Single",
+		Qty:          "10",
+		SKU:          "b118771212",
+	})
+
+	_, _ = client.Listings.Link(context.Background(), &listings.LinkRequest{
+		ProductID: "17484610",
+		ListingID: "15897064",
+		ID:        "manual-map-1",
+	})
+
+	_, _ = client.Channels.Create(context.Background(), &channels.CreateRequest{
+		Name:      "MANUAL-25149",
+		BrandName: "SIORA-12",
+	})
+
+	_, _ = client.Inventory.Update(context.Background(), &inventory.UpdateRequest{
+		ProductID: "3448631",
+		Payload: &inventory.UpdatePayload{
+			Quantity: "51",
+			Action:   "set",
+		},
 	})
 }

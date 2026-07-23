@@ -23,7 +23,7 @@ func TestNewClientBuildsRegisteredServicesAndDefaults(t *testing.T) {
 		},
 	})
 
-	if client.Auth == nil || client.Orders == nil || client.Couriers == nil || client.PickupAddresses == nil || client.Returns == nil || client.Shipments == nil || client.NDR == nil {
+	if client.Auth == nil || client.Orders == nil || client.Couriers == nil || client.PickupAddresses == nil || client.Products == nil || client.Listings == nil || client.Channels == nil || client.Inventory == nil || client.Returns == nil || client.Shipments == nil || client.NDR == nil {
 		t.Fatal("expected registered services on client")
 	}
 	if client.BaseURL() != DefaultBaseURL {
