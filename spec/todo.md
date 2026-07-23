@@ -318,60 +318,75 @@ Acceptance Criteria
 ### 4.1 Shipments
 
 Documented Endpoints
-- [ ] `GET /v1/external/shipments`
-- [ ] `GET /v1/external/shipments` for specific shipment details per docs naming; confirm required query params
-- [ ] `POST /v1/external/orders/cancel/shipment/awbs`
+- [x] `GET /v1/external/shipments`
+- [x] `GET /v1/external/shipments` for specific shipment details per docs naming; confirm required query params
+- [x] `POST /v1/external/orders/cancel/shipment/awbs`
 
 Tasks
-- [ ] Confirm how Shiprocket differentiates list versus detail on the same shipment path and model both methods accordingly.
-- [ ] Implement shipment list and shipment detail methods with explicit request types.
-- [ ] Implement shipment cancellation by AWB.
+- [x] Confirm how Shiprocket differentiates list versus detail on the same shipment path and model both methods accordingly.
+- [x] Implement shipment list and shipment detail methods with explicit request types.
+- [x] Implement shipment cancellation by AWB.
+
+Notes
+- Verified on July 23, 2026 against Shiprocket's live docs at `https://apidocs.shiprocket.in/` plus the published Shiprocket Postman collection. Public `swagger.json` and `openapi.json` endpoints were re-checked on the docs host and API host on July 23, 2026 and still return `404`, so the live docs and collection remain the public source of truth.
+- Shiprocket's shipment detail docs are currently mislabeled under the same base path as the list endpoint, but the published example path is `GET /v1/external/shipments/{shipment_id}`. The SDK models list and detail as separate methods on `client.Shipments`.
+- Shipment list filters are exposed through `shipment.ListParams` with the currently documented `sort`, `sort_by`, `filter`, `filter_by`, and pagination `page` query parameters.
 
 Testing
-- [ ] Add list/detail/cancel tests.
+- [x] Add list/detail/cancel tests.
 
 Acceptance Criteria
-- Shipment inspection and shipment cancellation are supported and documented clearly despite path reuse.
+- Shipment inspection and shipment cancellation are supported and documented clearly despite path reuse. ✅
 
 ### 4.2 Labels, Manifests, and Invoice
 
 Documented Endpoints
-- [ ] `POST /v1/external/manifests/generate`
-- [ ] `POST /v1/external/manifests/print`
-- [ ] `POST /v1/external/courier/generate/label`
-- [ ] `POST /v1/external/orders/print/invoice`
-- [ ] `POST /v1/external/courier/generate/label-invoice`
+- [x] `POST /v1/external/manifests/generate`
+- [x] `POST /v1/external/manifests/print`
+- [x] `POST /v1/external/courier/generate/label`
+- [x] `POST /v1/external/orders/print/invoice`
+- [x] `POST /v1/external/courier/generate/label-invoice`
 
 Tasks
-- [ ] Implement generation and print/download methods with clear modeling of URLs, PDFs, or job payloads returned by Shiprocket.
-- [ ] Support combined label+invoice flow.
-- [ ] Add helper examples for downloading printable artifacts once URLs are returned.
+- [x] Implement generation and print/download methods with clear modeling of URLs, PDFs, or job payloads returned by Shiprocket.
+- [x] Support combined label+invoice flow.
+- [x] Add helper examples for downloading printable artifacts once URLs are returned.
+
+Notes
+- Added manifest generation, manifest print, label generation, invoice generation, and combined label+invoice generation to `client.Shipments`, each with endpoint-specific request and response DTOs matching the current public examples.
+- Printable artifact APIs currently return presigned/public file URLs rather than inline PDFs. The SDK now includes `client.Shipments.DownloadArtifact(ctx, url)` so callers can fetch those artifacts with the shared HTTP client and user-agent settings.
+- Combined label+invoice responses are modeled with `completed`, `success_count`, `error_count`, and `error_file_url` so partial failures are visible instead of being collapsed into a plain success bool.
 
 Testing
-- [ ] Add tests for artifact-generation request payloads.
-- [ ] Add contract tests for response decoding when data contains URLs or nested documents.
+- [x] Add tests for artifact-generation request payloads.
+- [x] Add contract tests for response decoding when data contains URLs or nested documents.
 
 Acceptance Criteria
-- Consumers can generate every standard shipment document exposed in the public docs.
+- Consumers can generate every standard shipment document exposed in the public docs. ✅
 
 ### 4.3 Tracking
 
 Documented Endpoints
-- [ ] `GET /v1/external/courier/track/awb/{awb_code}`
-- [ ] `POST /v1/external/courier/track/awbs`
-- [ ] `GET /v1/external/courier/track/shipment/{shipment_id}`
-- [ ] `GET /v1/external/courier/track?order_id=123&channel_id=12345`
+- [x] `GET /v1/external/courier/track/awb/{awb_code}`
+- [x] `POST /v1/external/courier/track/awbs`
+- [x] `GET /v1/external/courier/track/shipment/{shipment_id}`
+- [x] `GET /v1/external/courier/track?order_id=123&channel_id=12345`
 
 Tasks
-- [ ] Implement tracking by AWB, multiple AWBs, shipment ID, and order/channel context.
-- [ ] Reuse scan-event models across tracking and webhook docs/examples.
-- [ ] Normalize timestamp fields and nullable tracking metadata.
+- [x] Implement tracking by AWB, multiple AWBs, shipment ID, and order/channel context.
+- [x] Reuse scan-event models across tracking and webhook docs/examples.
+- [x] Normalize timestamp fields and nullable tracking metadata.
+
+Notes
+- Added tracking methods for all four public request styles: AWB path lookup, bulk AWB lookup, shipment-id path lookup, and order-id query lookup.
+- Tracking payloads now reuse shared `TrackingData`, `TrackedShipment`, and `TrackingActivity` models so scan history, nullable courier metadata, POD fields, and estimated-delivery timestamps are handled consistently across the supported tracking endpoints.
+- Bulk AWB tracking is modeled as a keyed response map because Shiprocket's public response is keyed by AWB rather than wrapped in a list.
 
 Testing
-- [ ] Add tracking tests for all four request styles.
+- [x] Add tracking tests for all four request styles.
 
 Acceptance Criteria
-- All documented tracking paths are supported with typed scan history.
+- All documented tracking paths are supported with typed scan history. ✅
 
 ## 5. Phase 5 — Returns, Exchanges, and NDR
 

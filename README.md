@@ -100,3 +100,27 @@ New integrations should prefer the root client and service registration pattern:
 
 - `client.Auth`
 - `client.Orders`
+- `client.Couriers`
+- `client.PickupAddresses`
+- `client.Shipments`
+
+## Downloading Generated Artifacts
+
+Printable shipment APIs such as manifest, label, invoice, and combined label+invoice return file URLs. Use `client.Shipments.DownloadArtifact(ctx, url)` when you want to fetch the generated PDF through the SDK's shared HTTP client:
+
+```go
+label, err := client.Shipments.GenerateLabel(ctx, &shipment.GenerateLabelRequest{
+    ShipmentID: []int64{16104408},
+})
+if err != nil {
+    return
+}
+
+pdf, err := client.Shipments.DownloadArtifact(ctx, label.LabelURL)
+if err != nil {
+    return
+}
+
+_ = pdf.FileName
+_ = pdf.Body
+```

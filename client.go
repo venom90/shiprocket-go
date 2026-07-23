@@ -10,6 +10,7 @@ import (
 	internalclient "github.com/venom90/shiprocket-go/internal/client"
 	"github.com/venom90/shiprocket-go/orders"
 	"github.com/venom90/shiprocket-go/pickupaddress"
+	"github.com/venom90/shiprocket-go/shipment"
 )
 
 const DefaultBaseURL = internalclient.DefaultBaseURL
@@ -67,6 +68,7 @@ type Client struct {
 	Orders          *orders.Service
 	Couriers        *courier.Service
 	PickupAddresses *pickupaddress.Service
+	Shipments       *shipment.Service
 }
 
 func NewClient(cfg Config) *Client {
@@ -134,6 +136,7 @@ func NewClient(cfg Config) *Client {
 	client.Orders = orders.NewService(core)
 	client.Couriers = courier.NewService(core)
 	client.PickupAddresses = pickupaddress.NewService(core)
+	client.Shipments = shipment.NewService(core)
 
 	return client
 }

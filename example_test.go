@@ -7,6 +7,7 @@ import (
 
 	shiprocket "github.com/venom90/shiprocket-go"
 	"github.com/venom90/shiprocket-go/orders"
+	"github.com/venom90/shiprocket-go/shipment"
 )
 
 func ExampleNewClient() {
@@ -42,4 +43,11 @@ func ExampleNewClient() {
 			Weight:        0.5,
 		},
 	})
+
+	label, _ := client.Shipments.GenerateLabel(context.Background(), &shipment.GenerateLabelRequest{
+		ShipmentID: []int64{16104408},
+	})
+	if label != nil {
+		_, _ = client.Shipments.DownloadArtifact(context.Background(), label.LabelURL)
+	}
 }
