@@ -40,6 +40,10 @@ type Order struct {
 	Weight               float64     `json:"weight"`
 }
 
+type CreateCustomOrderRequest = Order
+type CreateChannelSpecificOrderRequest = Order
+type UpdateOrderRequest = Order
+
 type OrderItem struct {
 	Name         string `json:"name"`
 	Sku          string `json:"sku"`

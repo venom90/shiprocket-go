@@ -1,0 +1,114 @@
+package shiprocket
+
+import (
+	"context"
+	"net/http"
+	"time"
+
+	"github.com/venom90/shiprocket-go/auth"
+	internalclient "github.com/venom90/shiprocket-go/internal/client"
+	"github.com/venom90/shiprocket-go/orders"
+)
+
+const DefaultBaseURL = internalclient.DefaultBaseURL
+
+type TokenSource = internalclient.TokenSource
+type Logger = internalclient.Logger
+type Hook = internalclient.Hook
+type APIError = internalclient.APIError
+
+type Credentials struct {
+	Email    string
+	Password string
+}
+
+type StaticTokenSource struct {
+	TokenValue string
+}
+
+func (s StaticTokenSource) Token(context.Context) (string, error) {
+	return s.TokenValue, nil
+}
+
+type Config struct {
+	BaseURL     string
+	Token       string
+	TokenSource TokenSource
+	Credentials *Credentials
+	HTTPClient  *http.Client
+	Timeout     time.Duration
+	UserAgent   string
+	Logger      Logger
+	Hooks       []Hook
+}
+
+type Client struct {
+	core   *internalclient.Client
+	Config Config
+
+	Auth   *auth.Service
+	Orders *orders.Service
+}
+
+func NewClient(cfg Config) *Client {
+	opts := make([]internalclient.Option, 0, 6)
+	if cfg.HTTPClient != nil {
+		opts = append(opts, internalclient.WithHTTPClient(cfg.HTTPClient))
+	}
+	if cfg.Token != "" {
+		opts = append(opts, internalclient.WithToken(cfg.Token))
+	}
+	if cfg.TokenSource != nil {
+		opts = append(opts, internalclient.WithTokenSource(cfg.TokenSource))
+	}
+	if cfg.Timeout > 0 {
+		opts = append(opts, internalclient.WithTimeout(cfg.Timeout))
+	}
+	if cfg.UserAgent != "" {
+		opts = append(opts, internalclient.WithUserAgent(cfg.UserAgent))
+	}
+	if cfg.Logger != nil {
+		opts = append(opts, internalclient.WithLogger(cfg.Logger))
+	}
+	if len(cfg.Hooks) > 0 {
+		opts = append(opts, internalclient.WithHooks(cfg.Hooks...))
+	}
+
+	core := internalclient.New(cfg.BaseURL, opts...)
+
+	client := &Client{
+		core: core,
+		Config: Config{
+			BaseURL:     core.BaseURL,
+			Token:       cfg.Token,
+			TokenSource: cfg.TokenSource,
+			Credentials: cfg.Credentials,
+			HTTPClient:  core.HTTPClient,
+			Timeout:     core.HTTPClient.Timeout,
+			UserAgent:   core.UserAgent,
+			Logger:      cfg.Logger,
+			Hooks:       cfg.Hooks,
+		},
+	}
+
+	var authCredentials *auth.Credentials
+	if cfg.Credentials != nil {
+		authCredentials = &auth.Credentials{
+			Email:    cfg.Credentials.Email,
+			Password: cfg.Credentials.Password,
+		}
+	}
+
+	client.Auth = auth.NewService(core, authCredentials)
+	client.Orders = orders.NewService(core)
+
+	return client
+}
+
+func (c *Client) HTTPClient() *http.Client {
+	return c.core.HTTPClient
+}
+
+func (c *Client) BaseURL() string {
+	return c.core.BaseURL
+}

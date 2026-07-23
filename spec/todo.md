@@ -64,22 +64,22 @@ Acceptance Criteria
 ### 0.1 Package and Client Architecture
 
 Tasks
-- [ ] Introduce a root SDK client package instead of having each service own raw base URL and token fields.
-- [ ] Add config for base URL, auth credentials or token provider, custom `http.Client`, timeout, user agent, and optional logger hooks.
-- [ ] Define a service registration pattern such as `client.Auth`, `client.Orders`, `client.Couriers`, `client.Products`, etc.
-- [ ] Separate request DTOs, response DTOs, and service methods cleanly by module.
-- [ ] Decide and document whether this SDK targets Go `1.22+`, `1.23+`, or another explicit minimum.
+- [x] Introduce a root SDK client package instead of having each service own raw base URL and token fields.
+- [x] Add config for base URL, auth credentials or token provider, custom `http.Client`, timeout, user agent, and optional logger hooks.
+- [x] Define a service registration pattern such as `client.Auth`, `client.Orders`, `client.Couriers`, `client.Products`, etc.
+- [x] Separate request DTOs, response DTOs, and service methods cleanly by module.
+- [x] Decide and document whether this SDK targets Go `1.22+`, `1.23+`, or another explicit minimum.
 
 Dependencies
 - Agreement on public package layout and backwards-compatibility expectations.
 
 Testing
-- [ ] Add compile-time coverage for example usage across all exported services.
-- [ ] Add construction tests for default and custom client options.
+- [x] Add compile-time coverage for example usage across all exported services.
+- [x] Add construction tests for default and custom client options.
 
 Acceptance Criteria
-- New modules can be added without copying request boilerplate.
-- Public package layout is stable enough to document and version.
+- New modules can be added without copying request boilerplate. ✅
+- Public package layout is stable enough to document and version. ✅
 
 ### 0.2 Shared HTTP Layer
 

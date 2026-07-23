@@ -1,4 +1,4 @@
-package shiprocket
+package client
 
 import (
 	"context"
@@ -8,10 +8,11 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestNewRequestBuildsJSONQueryAndPathParams(t *testing.T) {
-	client := NewClient("https://example.com", WithToken("secret"), WithUserAgent("test-agent"))
+	client := New("https://example.com", WithToken("secret"), WithUserAgent("test-agent"))
 
 	req, err := client.NewRequest(context.Background(), &Request{
 		Method:     http.MethodPost,
@@ -69,7 +70,7 @@ func TestDoHandlesMultipartAndAcceptedResponses(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(server.URL, WithToken("secret"))
+	client := New(server.URL, WithToken("secret"))
 	var response struct {
 		Message string `json:"message"`
 	}
@@ -101,7 +102,7 @@ func TestDecodeResponseReturnsStructuredAPIError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(server.URL)
+	client := New(server.URL)
 	err := client.Do(context.Background(), &Request{
 		Method: http.MethodPost,
 		Path:   "/orders/import",
@@ -122,5 +123,12 @@ func TestDecodeResponseReturnsStructuredAPIError(t *testing.T) {
 	}
 	if len(apiErr.Errors["file"]) != 1 {
 		t.Fatalf("unexpected errors payload: %+v", apiErr.Errors)
+	}
+}
+
+func TestWithTimeoutSetsHTTPClientTimeout(t *testing.T) {
+	client := New(DefaultBaseURL, WithTimeout(5*time.Second))
+	if client.HTTPClient.Timeout != 5*time.Second {
+		t.Fatalf("unexpected timeout: %s", client.HTTPClient.Timeout)
 	}
 }

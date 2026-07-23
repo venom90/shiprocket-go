@@ -1,4 +1,4 @@
-package shiprocket
+package client
 
 import (
 	"bytes"
@@ -10,17 +10,34 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
-const defaultBaseURL = "https://apiv2.shiprocket.in"
+const DefaultBaseURL = "https://apiv2.shiprocket.in"
+
+type TokenSource interface {
+	Token(context.Context) (string, error)
+}
+
+type Logger interface {
+	Printf(format string, args ...any)
+}
+
+type Hook interface {
+	Before(*http.Request)
+	After(*http.Response, error)
+}
 
 type Option func(*Client)
 
 type Client struct {
-	BaseURL    string
-	Token      string
-	HTTPClient *http.Client
-	UserAgent  string
+	BaseURL     string
+	Token       string
+	TokenSource TokenSource
+	HTTPClient  *http.Client
+	UserAgent   string
+	Logger      Logger
+	Hooks       []Hook
 }
 
 type Request struct {
@@ -48,9 +65,9 @@ type MultipartFile struct {
 	ContentType string
 }
 
-func NewClient(baseURL string, opts ...Option) *Client {
+func New(baseURL string, opts ...Option) *Client {
 	if strings.TrimSpace(baseURL) == "" {
-		baseURL = defaultBaseURL
+		baseURL = DefaultBaseURL
 	}
 
 	c := &Client{
@@ -82,9 +99,36 @@ func WithToken(token string) Option {
 	}
 }
 
+func WithTokenSource(source TokenSource) Option {
+	return func(c *Client) {
+		c.TokenSource = source
+	}
+}
+
 func WithUserAgent(userAgent string) Option {
 	return func(c *Client) {
 		c.UserAgent = userAgent
+	}
+}
+
+func WithTimeout(timeout time.Duration) Option {
+	return func(c *Client) {
+		if c.HTTPClient == nil {
+			c.HTTPClient = &http.Client{}
+		}
+		c.HTTPClient.Timeout = timeout
+	}
+}
+
+func WithLogger(logger Logger) Option {
+	return func(c *Client) {
+		c.Logger = logger
+	}
+}
+
+func WithHooks(hooks ...Hook) Option {
+	return func(c *Client) {
+		c.Hooks = append(c.Hooks, hooks...)
 	}
 }
 
@@ -128,8 +172,12 @@ func (c *Client) NewRequest(ctx context.Context, req *Request) (*http.Request, e
 		return nil, err
 	}
 
-	if c.Token != "" {
-		httpReq.Header.Set("Authorization", "Bearer "+c.Token)
+	token, err := c.resolveToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if token != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+token)
 	}
 	if c.UserAgent != "" {
 		httpReq.Header.Set("User-Agent", c.UserAgent)
@@ -162,7 +210,21 @@ func (c *Client) DoRaw(ctx context.Context, req *Request) (*http.Response, error
 		return nil, err
 	}
 
-	return c.HTTPClient.Do(httpReq)
+	for _, hook := range c.Hooks {
+		hook.Before(httpReq)
+	}
+
+	if c.Logger != nil {
+		c.Logger.Printf("shiprocket request %s %s", httpReq.Method, httpReq.URL.String())
+	}
+
+	resp, err := c.HTTPClient.Do(httpReq)
+
+	for _, hook := range c.Hooks {
+		hook.After(resp, err)
+	}
+
+	return resp, err
 }
 
 func DecodeResponse(resp *http.Response, out any, expectedCodes ...int) error {
@@ -171,11 +233,19 @@ func DecodeResponse(resp *http.Response, out any, expectedCodes ...int) error {
 	}
 
 	if out == nil || resp.StatusCode == http.StatusNoContent {
-		io.Copy(io.Discard, resp.Body)
+		_, _ = io.Copy(io.Discard, resp.Body)
 		return nil
 	}
 
 	return json.NewDecoder(resp.Body).Decode(out)
+}
+
+func (c *Client) resolveToken(ctx context.Context) (string, error) {
+	if c.TokenSource != nil {
+		return c.TokenSource.Token(ctx)
+	}
+
+	return c.Token, nil
 }
 
 func buildBody(req *Request) (io.Reader, string, error) {

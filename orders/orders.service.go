@@ -5,8 +5,12 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/venom90/shiprocket-go/shiprocket"
+	internalclient "github.com/venom90/shiprocket-go/internal/client"
 )
+
+type Service struct {
+	client *internalclient.Client
+}
 
 type OrderService struct {
 	BaseURL    string
@@ -16,15 +20,23 @@ type OrderService struct {
 	UserAgent  string
 }
 
+func NewService(client *internalclient.Client) *Service {
+	return &Service{client: client}
+}
+
 // Create Custom Order
 // Use this API to create a quick custom order. Quick orders are the ones where we do not store the product details in the master catalogue.
 func (o *OrderService) CreateCustomOrder() (*CustomOrderResponse, error) {
-	return o.CreateCustomOrderContext(context.Background(), &o.Order)
+	return NewService(o.client()).CreateCustomOrder(context.Background(), (*CreateCustomOrderRequest)(&o.Order))
 }
 
 func (o *OrderService) CreateCustomOrderContext(ctx context.Context, order *Order) (*CustomOrderResponse, error) {
+	return NewService(o.client()).CreateCustomOrder(ctx, (*CreateCustomOrderRequest)(order))
+}
+
+func (s *Service) CreateCustomOrder(ctx context.Context, order *CreateCustomOrderRequest) (*CustomOrderResponse, error) {
 	var response CustomOrderResponse
-	err := o.client().Do(ctx, &shiprocket.Request{
+	err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPost,
 		Path:     "/v1/external/orders/create/adhoc",
 		JSONBody: order,
@@ -39,8 +51,12 @@ func (o *OrderService) CreateCustomOrderContext(ctx context.Context, order *Orde
 // Create Channel Specific Order
 // This API can be used to create a custom order, the same as the Custom order API, except that you have to specify and select a custom channel to create the order.
 func (o *OrderService) CreateChannelSpecificOrder(order *Order) (*ChannelSpecificOrderResponse, error) {
+	return NewService(o.client()).CreateChannelSpecificOrder(context.Background(), (*CreateChannelSpecificOrderRequest)(order))
+}
+
+func (s *Service) CreateChannelSpecificOrder(ctx context.Context, order *CreateChannelSpecificOrderRequest) (*ChannelSpecificOrderResponse, error) {
 	var response ChannelSpecificOrderResponse
-	err := o.client().Do(context.Background(), &shiprocket.Request{
+	err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPost,
 		Path:     "/v1/external/orders/create",
 		JSONBody: order,
@@ -53,10 +69,13 @@ func (o *OrderService) CreateChannelSpecificOrder(order *Order) (*ChannelSpecifi
 }
 
 // Change/Update Pickup Location of Created Orders
-// Using this API, you can modify the pickup location of an already created order. Multiple order ids can be passed to update their pickup location together.
 func (o *OrderService) UpdatePickupLocation(update *PickupLocationUpdate) (*PickupLocationUpdateResponse, error) {
+	return NewService(o.client()).UpdatePickupLocation(context.Background(), update)
+}
+
+func (s *Service) UpdatePickupLocation(ctx context.Context, update *PickupLocationUpdate) (*PickupLocationUpdateResponse, error) {
 	var response PickupLocationUpdateResponse
-	err := o.client().Do(context.Background(), &shiprocket.Request{
+	err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPatch,
 		Path:     "/v1/external/orders/address/pickup",
 		JSONBody: update,
@@ -69,10 +88,13 @@ func (o *OrderService) UpdatePickupLocation(update *PickupLocationUpdate) (*Pick
 }
 
 // Update Customer Delivery Address
-// You can update the customer's name and delivery address through this API by passing the Shiprocket order id and the necessary customer details.
 func (o *OrderService) UpdateCustomerDeliveryAddress(update *ShippingAddressUpdate) (*ShippingAddressUpdateResponse, error) {
+	return NewService(o.client()).UpdateCustomerDeliveryAddress(context.Background(), update)
+}
+
+func (s *Service) UpdateCustomerDeliveryAddress(ctx context.Context, update *ShippingAddressUpdate) (*ShippingAddressUpdateResponse, error) {
 	var response ShippingAddressUpdateResponse
-	err := o.client().Do(context.Background(), &shiprocket.Request{
+	err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPost,
 		Path:     "/v1/external/orders/address/update",
 		JSONBody: update,
@@ -85,11 +107,13 @@ func (o *OrderService) UpdateCustomerDeliveryAddress(update *ShippingAddressUpda
 }
 
 // Update Order
-// Use this API to update your orders. You have to pass all the required params at the minimum to create a quick custom order. You can add additional parameters as per your preference.
-// You can update only the order_items details before assigning the AWB (before Ready to Ship status). You can only update these key-value pairs i.e increase/decrease the quantity, update tax/discount, add/remove product items.
 func (o *OrderService) UpdateOrder(orderUpdate *Order) (*OrderUpdateResponse, error) {
+	return NewService(o.client()).UpdateOrder(context.Background(), (*UpdateOrderRequest)(orderUpdate))
+}
+
+func (s *Service) UpdateOrder(ctx context.Context, orderUpdate *UpdateOrderRequest) (*OrderUpdateResponse, error) {
 	var response OrderUpdateResponse
-	err := o.client().Do(context.Background(), &shiprocket.Request{
+	err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPost,
 		Path:     "/v1/external/orders/update/adhoc",
 		JSONBody: orderUpdate,
@@ -102,9 +126,12 @@ func (o *OrderService) UpdateOrder(orderUpdate *Order) (*OrderUpdateResponse, er
 }
 
 // Cancel an Order
-// Use this API to cancel a created order. Multiple order_ids can be passed together as an array to cancel them simultaneously.
 func (o *OrderService) CancelOrders(orderCancel *OrderCancel) error {
-	return o.client().Do(context.Background(), &shiprocket.Request{
+	return NewService(o.client()).CancelOrders(context.Background(), orderCancel)
+}
+
+func (s *Service) CancelOrders(ctx context.Context, orderCancel *OrderCancel) error {
+	return s.client.Do(ctx, &internalclient.Request{
 		Method:       http.MethodPost,
 		Path:         "/v1/external/orders/cancel",
 		JSONBody:     orderCancel,
@@ -114,8 +141,12 @@ func (o *OrderService) CancelOrders(orderCancel *OrderCancel) error {
 
 // Add Inventory for Ordered Product
 func (o *OrderService) AddInventoryForOrderedProduct(orderFulfill *OrderFulfill) ([]FulfillResponse, error) {
+	return NewService(o.client()).AddInventoryForOrderedProduct(context.Background(), orderFulfill)
+}
+
+func (s *Service) AddInventoryForOrderedProduct(ctx context.Context, orderFulfill *OrderFulfill) ([]FulfillResponse, error) {
 	var fulfillResponses []FulfillResponse
-	if err := o.client().Do(context.Background(), &shiprocket.Request{
+	if err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPatch,
 		Path:     "/v1/external/orders/fulfill",
 		JSONBody: orderFulfill,
@@ -127,10 +158,13 @@ func (o *OrderService) AddInventoryForOrderedProduct(orderFulfill *OrderFulfill)
 }
 
 // Map Unmapped Products
-// This API maps your unmapped inventory products.
 func (o *OrderService) MapOrders(orderMapping *OrderMapping) ([]MappingResponse, error) {
+	return NewService(o.client()).MapOrders(context.Background(), orderMapping)
+}
+
+func (s *Service) MapOrders(ctx context.Context, orderMapping *OrderMapping) ([]MappingResponse, error) {
 	var mappingResponses []MappingResponse
-	if err := o.client().Do(context.Background(), &shiprocket.Request{
+	if err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPatch,
 		Path:     "/v1/external/orders/mapping",
 		JSONBody: orderMapping,
@@ -142,8 +176,11 @@ func (o *OrderService) MapOrders(orderMapping *OrderMapping) ([]MappingResponse,
 }
 
 // Import Orders in Bulk
-// Use this API to import orders in bulk to your Shiprocket account from an existing '.csv' file. The imported orders are automatically added to your panel.
 func (o *OrderService) ImportOrders(filePath string) (*ImportResponse, error) {
+	return NewService(o.client()).ImportOrders(context.Background(), filePath)
+}
+
+func (s *Service) ImportOrders(ctx context.Context, filePath string) (*ImportResponse, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -151,11 +188,11 @@ func (o *OrderService) ImportOrders(filePath string) (*ImportResponse, error) {
 	defer file.Close()
 
 	var importResponse ImportResponse
-	if err := o.client().Do(context.Background(), &shiprocket.Request{
+	if err := s.client.Do(ctx, &internalclient.Request{
 		Method: http.MethodPost,
 		Path:   "/v1/external/orders/import",
-		Multipart: &shiprocket.MultipartBody{
-			Files: []shiprocket.MultipartFile{
+		Multipart: &internalclient.MultipartBody{
+			Files: []internalclient.MultipartFile{
 				{
 					FieldName: "file",
 					FileName:  file.Name(),
@@ -171,10 +208,13 @@ func (o *OrderService) ImportOrders(filePath string) (*ImportResponse, error) {
 }
 
 // Get Order response
-// This API call will display a list of all created and available orders in your Shiprocket account. The product and shipment details are displayed as sub-arrays within each order detail.
 func (o *OrderService) GetOrders() (*OrdersListResponse, error) {
+	return NewService(o.client()).GetOrders(context.Background())
+}
+
+func (s *Service) GetOrders(ctx context.Context) (*OrdersListResponse, error) {
 	var ordersResponse OrdersListResponse
-	if err := o.client().Do(context.Background(), &shiprocket.Request{
+	if err := s.client.Do(ctx, &internalclient.Request{
 		Method: http.MethodGet,
 		Path:   "/v1/external/orders",
 	}, &ordersResponse); err != nil {
@@ -185,10 +225,13 @@ func (o *OrderService) GetOrders() (*OrdersListResponse, error) {
 }
 
 // Get Specific Order Details
-// Get the order and shipment details of a particular order through this API by passing the Shiprocket order_id in the endpoint URL itself — type in your order_id in place of {id}.
 func (o *OrderService) GetOrderByID(orderID string) (OrderDetailResponse, error) {
+	return NewService(o.client()).GetOrderByID(context.Background(), orderID)
+}
+
+func (s *Service) GetOrderByID(ctx context.Context, orderID string) (OrderDetailResponse, error) {
 	var response OrderDetailResponse
-	err := o.client().Do(context.Background(), &shiprocket.Request{
+	err := s.client.Do(ctx, &internalclient.Request{
 		Method:     http.MethodGet,
 		Path:       "/v1/external/orders/show/{order_id}",
 		PathParams: map[string]string{"order_id": orderID},
@@ -200,11 +243,11 @@ func (o *OrderService) GetOrderByID(orderID string) (OrderDetailResponse, error)
 	return response, nil
 }
 
-func (o *OrderService) client() *shiprocket.Client {
-	return shiprocket.NewClient(
+func (o *OrderService) client() *internalclient.Client {
+	return internalclient.New(
 		o.BaseURL,
-		shiprocket.WithHTTPClient(o.HTTPClient),
-		shiprocket.WithToken(o.Token),
-		shiprocket.WithUserAgent(o.UserAgent),
+		internalclient.WithHTTPClient(o.HTTPClient),
+		internalclient.WithToken(o.Token),
+		internalclient.WithUserAgent(o.UserAgent),
 	)
 }

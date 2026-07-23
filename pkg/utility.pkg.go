@@ -6,12 +6,12 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/venom90/shiprocket-go/shiprocket"
+	internalclient "github.com/venom90/shiprocket-go/internal/client"
 )
 
 func SendRequest(method, path string, BaseURL string, Token string, body interface{}) (*http.Response, error) {
-	client := shiprocket.NewClient(BaseURL, shiprocket.WithToken(Token))
-	return client.DoRaw(context.Background(), &shiprocket.Request{
+	client := internalclient.New(BaseURL, internalclient.WithToken(Token))
+	return client.DoRaw(context.Background(), &internalclient.Request{
 		Method:   method,
 		Path:     path,
 		JSONBody: body,
@@ -25,7 +25,7 @@ func ReadResponse(resp *http.Response, result interface{}) error {
 	}
 
 	var body json.RawMessage
-	if err := shiprocket.DecodeResponse(resp, &body); err != nil {
+	if err := internalclient.DecodeResponse(resp, &body); err != nil {
 		return err
 	}
 

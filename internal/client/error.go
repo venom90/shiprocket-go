@@ -1,4 +1,4 @@
-package shiprocket
+package client
 
 import (
 	"encoding/json"
