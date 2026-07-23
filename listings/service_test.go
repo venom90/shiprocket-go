@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	internalclient "github.com/venom90/shiprocket-go/internal/client"
+	internalclient "github.com/Niyantra-Labs/shiprocket-gosdk/internal/client"
 )
 
 func TestListingEndpoints(t *testing.T) {

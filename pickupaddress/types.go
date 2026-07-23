@@ -3,7 +3,7 @@ package pickupaddress
 import (
 	"encoding/json"
 
-	"github.com/venom90/shiprocket-go/orders"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/orders"
 )
 
 type FlexibleString = orders.FlexibleString

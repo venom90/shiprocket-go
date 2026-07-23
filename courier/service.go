@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	internalclient "github.com/venom90/shiprocket-go/internal/client"
+	internalclient "github.com/Niyantra-Labs/shiprocket-gosdk/internal/client"
 )
 
 const blockedPincodesBaseURL = "https://serviceability.shiprocket.in"

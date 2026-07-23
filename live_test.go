@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	shiprocket "github.com/venom90/shiprocket-go"
+	shiprocket "github.com/Niyantra-Labs/shiprocket-gosdk"
 )
 
 func TestLiveSmoke(t *testing.T) {

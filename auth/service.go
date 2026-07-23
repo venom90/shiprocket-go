@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	internalclient "github.com/venom90/shiprocket-go/internal/client"
+	internalclient "github.com/Niyantra-Labs/shiprocket-gosdk/internal/client"
 )
 
 var ErrCredentialsRequired = errors.New("shiprocket auth credentials are required")

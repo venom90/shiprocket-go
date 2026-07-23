@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	internalclient "github.com/venom90/shiprocket-go/internal/client"
+	internalclient "github.com/Niyantra-Labs/shiprocket-gosdk/internal/client"
 )
 
 type credentialTokenSource struct {

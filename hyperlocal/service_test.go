@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/venom90/shiprocket-go/courier"
-	internalclient "github.com/venom90/shiprocket-go/internal/client"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/courier"
+	internalclient "github.com/Niyantra-Labs/shiprocket-gosdk/internal/client"
 )
 
 func TestHyperlocalServiceabilityWrapperSetsHyperlocalFlag(t *testing.T) {

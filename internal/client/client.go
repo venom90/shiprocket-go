@@ -85,7 +85,7 @@ func New(baseURL string, opts ...Option) *Client {
 	c := &Client{
 		BaseURL:    strings.TrimRight(baseURL, "/"),
 		HTTPClient: http.DefaultClient,
-		UserAgent:  "shiprocket-go",
+		UserAgent:  "shiprocket-gosdk",
 	}
 
 	for _, opt := range opts {

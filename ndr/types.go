@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/venom90/shiprocket-go/orders"
-	"github.com/venom90/shiprocket-go/shipment"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/orders"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/shipment"
 )
 
 type FlexibleString = orders.FlexibleString

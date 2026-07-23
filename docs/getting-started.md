@@ -8,7 +8,7 @@
 ## Install
 
 ```bash
-go get github.com/venom90/shiprocket-go
+go get github.com/Niyantra-Labs/shiprocket-gosdk
 ```
 
 ## Create API credentials
@@ -38,7 +38,7 @@ import (
 	"fmt"
 	"os"
 
-	shiprocket "github.com/venom90/shiprocket-go"
+	shiprocket "github.com/Niyantra-Labs/shiprocket-gosdk"
 )
 
 func main() {

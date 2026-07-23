@@ -3,7 +3,7 @@ package location
 import (
 	"net/url"
 
-	"github.com/venom90/shiprocket-go/orders"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/orders"
 )
 
 type FlexibleInt = orders.FlexibleInt

@@ -1,6 +1,6 @@
 package channels
 
-import "github.com/venom90/shiprocket-go/orders"
+import "github.com/Niyantra-Labs/shiprocket-gosdk/orders"
 
 type FlexibleString = orders.FlexibleString
 type FlexibleInt = orders.FlexibleInt

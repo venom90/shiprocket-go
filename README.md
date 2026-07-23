@@ -1,4 +1,4 @@
-# shiprocket-go
+# shiprocket-gosdk
 
 Unofficial Shiprocket Go SDK with typed services for the public Shiprocket API surface documented on July 23, 2026.
 
@@ -9,7 +9,7 @@ Unofficial Shiprocket Go SDK with typed services for the public Shiprocket API s
 ## Installation
 
 ```bash
-go get github.com/venom90/shiprocket-go
+go get github.com/Niyantra-Labs/shiprocket-gosdk
 ```
 
 ## Quickstart
@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"log"
 
-	shiprocket "github.com/venom90/shiprocket-go"
-	"github.com/venom90/shiprocket-go/orders"
+	shiprocket "github.com/Niyantra-Labs/shiprocket-gosdk"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/orders"
 )
 
 func main() {

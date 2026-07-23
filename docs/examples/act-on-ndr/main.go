@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	shiprocket "github.com/venom90/shiprocket-go"
-	"github.com/venom90/shiprocket-go/ndr"
+	shiprocket "github.com/Niyantra-Labs/shiprocket-gosdk"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/ndr"
 )
 
 func main() {

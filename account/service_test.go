@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	internalclient "github.com/venom90/shiprocket-go/internal/client"
+	internalclient "github.com/Niyantra-Labs/shiprocket-gosdk/internal/client"
 )
 
 func TestAccountEndpoints(t *testing.T) {

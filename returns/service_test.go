@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/venom90/shiprocket-go/courier"
-	internalclient "github.com/venom90/shiprocket-go/internal/client"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/courier"
+	internalclient "github.com/Niyantra-Labs/shiprocket-gosdk/internal/client"
 )
 
 func TestReturnAndExchangeEndpointsSendDocumentedPayloads(t *testing.T) {

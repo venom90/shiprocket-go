@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	shiprocket "github.com/venom90/shiprocket-go"
+	shiprocket "github.com/Niyantra-Labs/shiprocket-gosdk"
 )
 
 func main() {

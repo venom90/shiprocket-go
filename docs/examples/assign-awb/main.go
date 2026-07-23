@@ -7,8 +7,8 @@ import (
 	"os"
 	"strconv"
 
-	shiprocket "github.com/venom90/shiprocket-go"
-	"github.com/venom90/shiprocket-go/courier"
+	shiprocket "github.com/Niyantra-Labs/shiprocket-gosdk"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/courier"
 )
 
 func main() {

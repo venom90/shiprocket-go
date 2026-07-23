@@ -3,11 +3,11 @@ package hyperlocal
 import (
 	"context"
 
-	"github.com/venom90/shiprocket-go/courier"
-	internalclient "github.com/venom90/shiprocket-go/internal/client"
-	"github.com/venom90/shiprocket-go/orders"
-	"github.com/venom90/shiprocket-go/pickupaddress"
-	"github.com/venom90/shiprocket-go/shipment"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/courier"
+	internalclient "github.com/Niyantra-Labs/shiprocket-gosdk/internal/client"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/orders"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/pickupaddress"
+	"github.com/Niyantra-Labs/shiprocket-gosdk/shipment"
 )
 
 type Service struct {
