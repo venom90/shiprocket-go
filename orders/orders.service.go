@@ -213,11 +213,23 @@ func (o *OrderService) GetOrders() (*OrdersListResponse, error) {
 }
 
 func (s *Service) GetOrders(ctx context.Context) (*OrdersListResponse, error) {
+	return s.GetOrdersWithParams(ctx, nil)
+}
+
+func (o *OrderService) GetOrdersWithParams(params *OrdersListParams) (*OrdersListResponse, error) {
+	return NewService(o.client()).GetOrdersWithParams(context.Background(), params)
+}
+
+func (s *Service) GetOrdersWithParams(ctx context.Context, params *OrdersListParams) (*OrdersListResponse, error) {
 	var ordersResponse OrdersListResponse
-	if err := s.client.Do(ctx, &internalclient.Request{
+	request := &internalclient.Request{
 		Method: http.MethodGet,
 		Path:   "/v1/external/orders",
-	}, &ordersResponse); err != nil {
+	}
+	if params != nil {
+		request.Query = params.QueryValues()
+	}
+	if err := s.client.Do(ctx, request, &ordersResponse); err != nil {
 		return nil, err
 	}
 

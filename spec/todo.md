@@ -121,20 +121,25 @@ Acceptance Criteria
 ### 0.4 Type Modeling Standards
 
 Tasks
-- [ ] Audit all currently modeled request/response fields against docs examples and actual collection payloads.
-- [ ] Standardize field types where the current SDK is too loose or incorrect, especially IDs, money strings, booleans, optional values, and timestamps.
-- [ ] Decide where to use enums/constants for shipment status, payment method, action names, and NDR actions.
-- [ ] Define pagination/filter request types for list endpoints where Shiprocket accepts query filters.
-- [ ] Keep escape hatches for unstable fields using `json.RawMessage` only where the API shape is genuinely inconsistent.
+- [x] Audit all currently modeled request/response fields against docs examples and actual collection payloads.
+- [x] Standardize field types where the current SDK is too loose or incorrect, especially IDs, money strings, booleans, optional values, and timestamps.
+- [x] Decide where to use enums/constants for shipment status, payment method, action names, and NDR actions.
+- [x] Define pagination/filter request types for list endpoints where Shiprocket accepts query filters.
+- [x] Keep escape hatches for unstable fields using `json.RawMessage` only where the API shape is genuinely inconsistent.
+
+Notes
+- Verified on July 23, 2026 against `https://apidocs.shiprocket.in/` plus Shiprocket's published Postman collection.
+- Public OpenAPI/Swagger endpoints checked at `https://apidocs.shiprocket.in/swagger.json`, `https://apidocs.shiprocket.in/openapi.json`, `https://apidocs.shiprocket.in/v2/api-docs`, `https://apiv2.shiprocket.in/swagger.json`, and `https://apiv2.shiprocket.in/openapi.json` all returned `404`, so the live docs and collection were treated as the public source of truth.
+- Added flexible scalar wrappers for string-or-number and bool-or-flag fields, stricter request and response DTOs for order endpoints, typed list-filter parameters, and targeted `json.RawMessage` escape hatches for genuinely unstable fields.
 
 Dependencies
 - Endpoint-by-endpoint modeling pass.
 
 Testing
-- [ ] Add JSON round-trip tests for all exported DTOs.
+- [x] Add JSON round-trip tests for all exported DTOs.
 
 Acceptance Criteria
-- Typed models are reliable enough for IDE completion and stable integration use.
+- Typed models are reliable enough for IDE completion and stable integration use. ✅
 
 ## 1. Phase 1 — Authentication and Core Client
 
