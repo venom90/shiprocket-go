@@ -262,44 +262,56 @@ Acceptance Criteria
 ### 3.1 Couriers
 
 Documented Endpoints
-- [ ] `POST /v1/external/courier/assign/awb`
-- [ ] `GET /v1/external/courier/courierListWithCounts`
-- [ ] `GET /v1/external/courier/serviceability/`
-- [ ] `POST /v1/external/courier/generate/pickup`
-- [ ] `POST /v1/external/blocked-pincodes/upload`
-- [ ] `GET /v1/external/block-pincodes/get`
+- [x] `POST /v1/external/courier/assign/awb`
+- [x] `GET /v1/external/courier/courierListWithCounts`
+- [x] `GET /v1/external/courier/serviceability/`
+- [x] `POST /v1/external/courier/generate/pickup`
+- [x] `POST /v1/external/blocked-pincodes/upload`
+- [x] `GET /v1/external/block-pincodes/get`
 
 Tasks
-- [ ] Implement AWB assignment with typed request/response and explicit shipment identifiers.
-- [ ] Implement courier list retrieval.
-- [ ] Implement serviceability lookup with query params for origin, destination, COD, dimensions, and weight as documented.
-- [ ] Implement pickup request creation.
-- [ ] Implement blocked-pincode upload and fetch flows, including file upload if required by Shiprocket.
-- [ ] Document which responses are immediate actions versus asynchronous jobs.
+- [x] Implement AWB assignment with typed request/response and explicit shipment identifiers.
+- [x] Implement courier list retrieval.
+- [x] Implement serviceability lookup with query params for origin, destination, COD, dimensions, and weight as documented.
+- [x] Implement pickup request creation.
+- [x] Implement blocked-pincode upload and fetch flows, including file upload if required by Shiprocket.
+- [x] Document which responses are immediate actions versus asynchronous jobs.
+
+Notes
+- Verified on July 23, 2026 against Shiprocket's live docs at `https://apidocs.shiprocket.in/` plus the published Shiprocket Postman collection. Public `swagger.json` / `openapi.json` endpoints are still not exposed by Shiprocket, so the live docs and collection remain the current public contract source.
+- Added a dedicated `client.Couriers` service covering AWB assignment, courier catalog listing, serviceability lookups, pickup generation, and blocked-pincode management.
+- Blocked-pincode endpoints are hosted on `https://serviceability.shiprocket.in`, not the default `https://apiv2.shiprocket.in`, so the SDK routes those calls through a dedicated internal client while preserving auth, hooks, middleware, and transport settings.
+- Shiprocket's current blocked-pincode upload contract is JSON, not multipart. The SDK sends the documented `{postcode, action}` payload and the tests assert JSON transport explicitly.
+- AWB assignment and pickup generation now model both synchronous payloads and the asynchronous/immediate acknowledgement variants currently shown in the public docs examples.
 
 Testing
-- [ ] Add query-parameter tests for serviceability.
-- [ ] Add file-upload tests if blocked-pincode upload is multipart.
+- [x] Add query-parameter tests for serviceability.
+- [x] Add file-upload tests if blocked-pincode upload is multipart.
 
 Acceptance Criteria
-- The SDK fully supports rate discovery, courier assignment, pickup generation, and pincode restrictions.
+- The SDK fully supports rate discovery, courier assignment, pickup generation, and pincode restrictions. ✅
 
 ### 3.2 Pickup Addresses
 
 Documented Endpoints
-- [ ] `GET /v1/external/settings/company/pickup`
-- [ ] `POST /v1/external/settings/company/addpickup`
+- [x] `GET /v1/external/settings/company/pickup`
+- [x] `POST /v1/external/settings/company/addpickup`
 
 Tasks
-- [ ] Implement pickup-address listing.
-- [ ] Implement pickup-address creation with typed address model reuse.
-- [ ] Reuse these models in order, courier, hyperlocal, and international docs/examples where relevant.
+- [x] Implement pickup-address listing.
+- [x] Implement pickup-address creation with typed address model reuse.
+- [x] Reuse these models in order, courier, hyperlocal, and international docs/examples where relevant.
+
+Notes
+- Completed on July 23, 2026 after re-checking Shiprocket's current pickup settings docs and collection examples.
+- Added a dedicated `client.PickupAddresses` service with typed list and create flows, plus reusable `PickupAddress` models that match the current public address payloads including primary-location, RTO, verification, and geolocation fields.
+- The courier module now reuses the same pickup/contact concepts for AWB assignment and pickup scheduling docs/examples instead of inventing parallel address shapes.
 
 Testing
-- [ ] Add pickup address list/create tests.
+- [x] Add pickup address list/create tests.
 
 Acceptance Criteria
-- Pickup locations are manageable through the SDK without direct panel interaction.
+- Pickup locations are manageable through the SDK without direct panel interaction. ✅
 
 ## 4. Phase 4 — Shipments, Labels, Manifests, Invoice, and Tracking
 
