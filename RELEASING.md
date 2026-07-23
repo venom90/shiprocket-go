@@ -4,7 +4,7 @@
 
 - The next public release should be `v0.1.0`.
 - The SDK is still pre-`v1`, so minor releases may include breaking changes when Shiprocket forces request or response shape changes.
-- Breaking changes must still be called out explicitly in `CHANGELOG.md` and [docs/reference/migration.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/reference/migration.md).
+- Breaking changes must still be called out explicitly in `CHANGELOG.md` and [docs/reference/migration.md](docs/reference/migration.md).
 
 ## Semantic versioning
 
@@ -17,14 +17,14 @@
 ## Release checklist
 
 1. Re-audit `https://apidocs.shiprocket.in/` and the published Shiprocket Postman collection.
-2. Update [docs/reference/coverage.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/reference/coverage.md) with the exact audit date.
+2. Update [docs/reference/coverage.md](docs/reference/coverage.md) with the exact audit date.
 3. Run `go test ./...`.
 4. Run `go test -race ./...`.
 5. Run `go test -coverprofile=coverage.out ./...`.
 6. Run `golangci-lint run`.
 7. If credentials are available, run `go test -run TestLiveSmoke -count=1 ./...`.
 8. Update `CHANGELOG.md`.
-9. Update [docs/reference/migration.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/reference/migration.md) if any public API changed.
+9. Update [docs/reference/migration.md](docs/reference/migration.md) if any public API changed.
 10. Create an annotated tag only after the checklist is green.
 
 ## Tagging

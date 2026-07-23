@@ -5,7 +5,7 @@
 - The repo currently has no `docs/` folder.
 - Goal: add developer documentation that matches the SDK’s eventual full Shiprocket API coverage and makes the library usable without source diving.
 - Source of truth for API scope: `https://apidocs.shiprocket.in/` and the published Postman collection retrieved on 2026-07-23.
-- Source of truth for implementation roadmap: [todo.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/spec/todo.md:1)
+- Source of truth for implementation roadmap: [todo.md](todo.md)
 
 ## Audit Update — 2026-07-23
 
