@@ -422,6 +422,120 @@ func TestOrderMutationNegativeResponses(t *testing.T) {
 	})
 }
 
+func TestOrderReadEndpoints(t *testing.T) {
+	t.Run("list orders with documented filters", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodGet {
+				t.Fatalf("unexpected method: %s", r.Method)
+			}
+			if r.URL.Path != "/v1/external/orders" {
+				t.Fatalf("unexpected path: %s", r.URL.Path)
+			}
+			query := r.URL.Query()
+			if query.Get("page") != "3" || query.Get("filter_by") != string(OrderFilterByStatus) || query.Get("filter") != "NEW" {
+				t.Fatalf("unexpected query: %s", r.URL.RawQuery)
+			}
+			_, _ = w.Write([]byte(`{"data":[{"id":16178831,"channel_id":76893,"channel_name":"CUSTOM","base_channel_code":"CS","channel_order_id":"224-4779888","customer_name":"Majin Bu","customer_email":"naruto@uzumaki.com","customer_phone":"9988998899","pickup_location":"hell","payment_status":"","total":"9000.00","tax":"0.00","sla":"2 days","shipping_method":"SR","expedited":0,"status":"CANCELED","status_code":5,"payment_method":"prepaid","is_international":0,"purpose_of_shipment":0,"channel_created_at":"24 Jul 2019, 11:11 AM","created_at":"31 Jul 2019, 03:03 PM","products":[{"id":18769728,"channel_order_product_id":"18769728","name":"Kunai","channel_sku":"chakra123","quantity":10,"product_id":17484610,"available":50,"status":"CANCELED","hsn":"441122"}],"shipments":[{"id":16028538,"isd_code":"","courier":"","weight":0,"dimensions":"0.00x0.00x0.00","pickup_scheduled_date":null,"pickup_token_number":null,"awb":"","return_awb":"","volumetric_weight":0,"pod":null,"etd":"NA","rto_delivered_date":"0000-00-00 00:00:00","delivered_date":null,"etd_escalation_btn":false}],"activities":["ORDER_CREATED"],"allow_return":0,"is_incomplete":0,"errors":[],"show_escalation_btn":0,"escalation_status":"","escalation_history":[]}],"meta":{"pagination":{"total":1,"count":1,"per_page":1,"current_page":3,"total_pages":1,"links":{}}}}`))
+		}))
+		defer server.Close()
+
+		service := NewService(internalclient.New(server.URL, internalclient.WithToken("token")))
+		resp, err := service.GetOrdersWithParams(context.Background(), &OrdersListParams{
+			Page:     3,
+			FilterBy: OrderFilterByStatus,
+			Filter:   "NEW",
+		})
+		if err != nil {
+			t.Fatalf("GetOrdersWithParams returned error: %v", err)
+		}
+		if len(resp.Data) != 1 || resp.Meta.Pagination.CurrentPage != 3 || resp.Data[0].ID != 16178831 {
+			t.Fatalf("unexpected response: %+v", resp)
+		}
+	})
+
+	t.Run("get order details by request", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodGet {
+				t.Fatalf("unexpected method: %s", r.Method)
+			}
+			if r.URL.Path != "/v1/external/orders/show/16178831" {
+				t.Fatalf("unexpected path: %s", r.URL.Path)
+			}
+			_, _ = w.Write([]byte(`{"data":{"id":259492257,"channel_id":38026,"channel_name":"MANUAL1","base_channel_code":"CS","is_international":0,"is_document":0,"channel_order_id":"1873081902","customer_name":"DemoHome","customer_email":"abc@gmail.com","customer_phone":"9876543236","customer_address":"408, Gautami, Kondapur","customer_address_2":null,"customer_city":"North West Delhi","customer_state":"Delhi","customer_pincode":"110088","customer_country":"India","pickup_code":"","pickup_location":"","pickup_location_id":"","pickup_id":"","ship_type":"","courier_mode":"","currency":"INR","country_code":99,"exchange_rate_usd":0,"exchange_rate_inr":0,"state_code":1483,"payment_status":"","delivery_code":"110088","total":345,"total_inr":0,"total_usd":0,"net_total":"345.00","other_charges":"0.00","other_discounts":"0.00","giftwrap_charges":"0.00","expedited":0,"sla":"2 days","cod":0,"tax":0,"total_kerala_cess":"","discount":0,"status":"RETURN PENDING","sub_status":null,"status_code":21,"master_status":"","payment_method":"prepaid","purpose_of_shipment":0,"channel_created_at":"21 Sep 2022 05:25 PM","created_at":"21 Sep 2022 05:28 PM","order_date":"21 Sep 2022","updated_at":"21 Sep 2022 05:28 PM","products":[],"invoice_no":"","shipments":{"id":258878960,"order_id":259492257,"order_product_id":null,"channel_id":38026,"code":"","cost":"0.00","tax":"0.00","awb":null,"rto_awb":"","awb_assign_date":null,"etd":"","delivered_date":"","quantity":1,"cod_charges":"0.00","number":null,"name":null,"order_item_id":null,"weight":1,"volumetric_weight":0.266,"dimensions":"11.000x11.000x11.000","comment":"","courier":"","courier_id":"","manifest_id":"","manifest_escalate":false,"status":"PENDING","isd_code":"+91","created_at":"21st Sep 2022 05:28 PM","updated_at":"21st Sep 2022 05:28 PM","pod":null,"eway_bill_number":"-","eway_bill_date":null,"length":11,"breadth":11,"height":11,"rto_initiated_date":"","rto_delivered_date":"","shipped_date":"","package_images":"","is_rto":false,"eway_required":false,"invoice_link":"","is_darkstore_courier":0,"courier_custom_rule":"","is_single_shipment":true},"awb_data":{"awb":"","applied_weight":"","charged_weight":"","billed_weight":"","routing_code":"","rto_routing_code":"","charges":{"zone":"","cod_charges":"","applied_weight_amount":"","freight_charges":"","applied_weight":"","charged_weight":"","charged_weight_amount":"","charged_weight_amount_rto":"","applied_weight_amount_rto":"","service_type_id":""}},"order_insurance":{"insurance_status":"No","policy_no":"N/A","claim_enable":false},"return_pickup_data":{"id":2143757,"name":"ashwin ashwin","email":"ashwingunadeep@gmail.com","address":"shiprocket","address_2":"shiprocket","city":"South West Delhi","state":"Delhi","country":"India","pin_code":"110030","phone":"9562817406","lat":null,"long":null,"order_id":259492257,"created_at":"2022-09-21 17:28:40","updated_at":"2022-09-21 17:28:40"},"company_logo":null,"allow_return":0,"is_return":1,"is_incomplete":0,"errors":null,"payment_code":null,"coupon_is_visible":false,"coupons":"","billing_city":"","billing_name":"","billing_email":"","billing_phone":"","billing_alternate_phone":"","billing_state_name":"","billing_address":"","billing_country_name":"","billing_pincode":"","billing_address_2":"","billing_mobile_country_code":"+91","isd_code":"","billing_state_id":"","billing_country_id":"","freight_description":"Forward charges","reseller_name":"","shipping_is_billing":0,"company_name":"shiprocket","shipping_title":"","allow_channel_order_sync":false,"uib-tooltip-text":"Re-fetch orders with updated details","api_order_id":"","allow_multiship":0,"other_sub_orders":[],"others":{"weight":"1","quantity":1,"buyer_psid":null,"dimensions":"11x11x11","api_order_id":"","company_name":"shiprocket","currency_code":"INR","package_count":"1","shipping_city":"North West Delhi","shipping_name":"DemoHome","shipping_email":"abc@gmail.com","shipping_phone":"9876543236","shipping_state":"Delhi","custom_order_id":null,"billing_isd_code":"+91","forward_order_id":null,"shipping_address":"408, Gautami, Kondapur","shipping_charges":"0","shipping_country":"India","shipping_pincode":"110088","shipping_address_2":""},"is_order_verified":0,"extra_info":{"qc_check":1,"qc_params":"Product Name,Size,Color,Brand,Product Image","order_type":1,"amazon_dg_status":false,"forward_order_id":"","bluedart_dg_status":false,"other_courier_dg_status":false,"insurace_opted_at_order_creation":false},"dup":0,"is_blackbox_seller":false,"shipping_method":"SR","refund_detail":{"refund_mode":"Store Credits","account_holder_name":"","account_number":"","bank_ifsc":"","bank_name":""},"fulfillment_status":"Packed"}}`))
+		}))
+		defer server.Close()
+
+		service := NewService(internalclient.New(server.URL, internalclient.WithToken("token")))
+		resp, err := service.GetOrderDetails(context.Background(), &GetOrderDetailsRequest{ShiprocketOrderID: 16178831})
+		if err != nil {
+			t.Fatalf("GetOrderDetails returned error: %v", err)
+		}
+		if resp.Data.ID != 259492257 || resp.Data.Shipments.ID != 258878960 {
+			t.Fatalf("unexpected detail response: %+v", resp)
+		}
+		if resp.Data.FulfillmentStatus == nil || *resp.Data.FulfillmentStatus != "Packed" {
+			t.Fatalf("expected fulfillment status, got %+v", resp.Data.FulfillmentStatus)
+		}
+	})
+
+	t.Run("export orders background job", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodPost {
+				t.Fatalf("unexpected method: %s", r.Method)
+			}
+			if r.URL.Path != "/v1/external/orders/export" {
+				t.Fatalf("unexpected path: %s", r.URL.Path)
+			}
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				t.Fatalf("ReadAll returned error: %v", err)
+			}
+			if compactJSON(t, string(body)) != `{}` {
+				t.Fatalf("unexpected export request body: %s", string(body))
+			}
+			_, _ = w.Write([]byte(`{"status":200,"is_background_downloading":1}`))
+		}))
+		defer server.Close()
+
+		service := NewService(internalclient.New(server.URL, internalclient.WithToken("token")))
+		resp, err := service.ExportOrders(context.Background(), &ExportOrdersRequest{})
+		if err != nil {
+			t.Fatalf("ExportOrders returned error: %v", err)
+		}
+		if resp.Status != 200 || !resp.IsBackgroundDownloading.Bool() {
+			t.Fatalf("unexpected export response: %+v", resp)
+		}
+	})
+}
+
+func TestOrderReadNegativeResponses(t *testing.T) {
+	t.Run("nil order details request", func(t *testing.T) {
+		service := NewService(internalclient.New("https://example.com", internalclient.WithToken("token")))
+		_, err := service.GetOrderDetails(context.Background(), nil)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		var transportErr *internalclient.TransportError
+		if !errors.As(err, &transportErr) {
+			t.Fatalf("expected TransportError, got %T", err)
+		}
+	})
+
+	t.Run("legacy get order by id rejects non numeric ids", func(t *testing.T) {
+		service := NewService(internalclient.New("https://example.com", internalclient.WithToken("token")))
+		_, err := service.GetOrderByID(context.Background(), "not-a-number")
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		var transportErr *internalclient.TransportError
+		if !errors.As(err, &transportErr) {
+			t.Fatalf("expected TransportError, got %T", err)
+		}
+	})
+}
+
 func compactJSON(t *testing.T, payload string) string {
 	t.Helper()
 	if strings.TrimSpace(payload) == "" {

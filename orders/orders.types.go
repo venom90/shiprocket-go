@@ -383,6 +383,10 @@ func boolAsFlag(value bool) string {
 	return "0"
 }
 
+type GetOrderDetailsRequest struct {
+	ShiprocketOrderID int64
+}
+
 type OrdersListResponse struct {
 	Data []OrderSummary `json:"data"`
 	Meta OrdersListMeta `json:"meta"`
@@ -467,6 +471,13 @@ type OrderSummaryShipment struct {
 
 type OrderDetailResponse struct {
 	Data OrderDetail `json:"data"`
+}
+
+type ExportOrdersRequest struct{}
+
+type ExportOrdersResponse struct {
+	Status                  int          `json:"status"`
+	IsBackgroundDownloading FlexibleBool `json:"is_background_downloading"`
 }
 
 type OrderDetail struct {

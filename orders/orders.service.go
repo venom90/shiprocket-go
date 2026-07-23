@@ -2,9 +2,11 @@ package orders
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	internalclient "github.com/venom90/shiprocket-go/internal/client"
 )
@@ -243,17 +245,64 @@ func (o *OrderService) GetOrderByID(orderID string) (OrderDetailResponse, error)
 }
 
 func (s *Service) GetOrderByID(ctx context.Context, orderID string) (OrderDetailResponse, error) {
+	parsed, err := strconv.ParseInt(orderID, 10, 64)
+	if err != nil {
+		return OrderDetailResponse{}, &internalclient.TransportError{
+			Err:    err,
+			Method: http.MethodGet,
+			URL:    s.client.BaseURL + "/v1/external/orders/show/" + orderID,
+		}
+	}
+
+	return s.GetOrderDetails(ctx, &GetOrderDetailsRequest{
+		ShiprocketOrderID: parsed,
+	})
+}
+
+func (o *OrderService) GetOrderDetails(request *GetOrderDetailsRequest) (OrderDetailResponse, error) {
+	return NewService(o.client()).GetOrderDetails(context.Background(), request)
+}
+
+func (s *Service) GetOrderDetails(ctx context.Context, request *GetOrderDetailsRequest) (OrderDetailResponse, error) {
 	var response OrderDetailResponse
+	if request == nil {
+		return OrderDetailResponse{}, &internalclient.TransportError{
+			Err:    errOrderDetailsRequestRequired,
+			Method: http.MethodGet,
+			URL:    s.client.BaseURL + "/v1/external/orders/show/{order_id}",
+		}
+	}
 	err := s.client.Do(ctx, &internalclient.Request{
 		Method:     http.MethodGet,
 		Path:       "/v1/external/orders/show/{order_id}",
-		PathParams: map[string]string{"order_id": orderID},
+		PathParams: map[string]string{"order_id": formatShiprocketOrderID(request.ShiprocketOrderID)},
 	}, &response)
 	if err != nil {
 		return OrderDetailResponse{}, err
 	}
 
 	return response, nil
+}
+
+func (o *OrderService) ExportOrders() (*ExportOrdersResponse, error) {
+	return NewService(o.client()).ExportOrders(context.Background(), &ExportOrdersRequest{})
+}
+
+func (s *Service) ExportOrders(ctx context.Context, request *ExportOrdersRequest) (*ExportOrdersResponse, error) {
+	if request == nil {
+		request = &ExportOrdersRequest{}
+	}
+
+	var response ExportOrdersResponse
+	if err := s.client.Do(ctx, &internalclient.Request{
+		Method:   http.MethodPost,
+		Path:     "/v1/external/orders/export",
+		JSONBody: request,
+	}, &response); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
 
 func (o *OrderService) client() *internalclient.Client {
@@ -263,4 +312,10 @@ func (o *OrderService) client() *internalclient.Client {
 		internalclient.WithToken(o.Token),
 		internalclient.WithUserAgent(o.UserAgent),
 	)
+}
+
+var errOrderDetailsRequestRequired = errors.New("order details request is required")
+
+func formatShiprocketOrderID(orderID int64) string {
+	return strconv.FormatInt(orderID, 10)
 }

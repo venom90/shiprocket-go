@@ -232,24 +232,30 @@ Acceptance Criteria
 ### 2.2 Orders Read APIs
 
 Documented Endpoints
-- [ ] `GET /v1/external/orders`
-- [ ] `GET /v1/external/orders/show`
-- [ ] `POST /v1/external/orders/export`
+- [x] `GET /v1/external/orders`
+- [x] `GET /v1/external/orders/show`
+- [x] `POST /v1/external/orders/export`
 
 Tasks
-- [ ] Replace current `GetOrders` raw payload with typed list response modeling.
-- [ ] Implement request filters for orders list if supported by Shiprocket query params.
-- [ ] Implement specific-order lookup request modeling.
-- [ ] Implement order export workflow and document what artifact or job result is returned.
+- [x] Replace current `GetOrders` raw payload with typed list response modeling.
+- [x] Implement request filters for orders list if supported by Shiprocket query params.
+- [x] Implement specific-order lookup request modeling.
+- [x] Implement order export workflow and document what artifact or job result is returned.
+
+Notes
+- Verified on July 23, 2026 against Shiprocket's live docs at `https://apidocs.shiprocket.in/` plus the published Shiprocket Postman collection entries for `Get all Orders`, `Get Specific Order Details`, and `Export your orders`.
+- Orders list is now modeled with typed pagination, shipment, and product summaries, and the documented filter/query parameters are available through `OrdersListParams`.
+- Specific-order lookup now has explicit request modeling via `GetOrderDetailsRequest`, while the legacy `GetOrderByID(string)` wrapper remains available for compatibility and now rejects non-numeric values instead of silently issuing `/show/0`.
+- Order export is modeled as an asynchronous background job trigger. Shiprocket's public example response is `{"status":200,"is_background_downloading":1}` and the docs state the CSV download URL is sent to the linked API-user email address rather than returned inline.
 
 Dependencies
 - Core order models.
 
 Testing
-- [ ] Add list/filter/detail/export tests.
+- [x] Add list/filter/detail/export tests.
 
 Acceptance Criteria
-- Orders can be created, mutated, listed, fetched individually, and exported end to end.
+- Orders can be created, mutated, listed, fetched individually, and exported end to end. ✅
 
 ## 3. Phase 3 — Courier Assignment, Serviceability, and Pickup
 
