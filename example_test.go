@@ -6,9 +6,13 @@ import (
 	"time"
 
 	shiprocket "github.com/venom90/shiprocket-go"
+	"github.com/venom90/shiprocket-go/account"
 	"github.com/venom90/shiprocket-go/channels"
+	"github.com/venom90/shiprocket-go/courier"
+	"github.com/venom90/shiprocket-go/international"
 	"github.com/venom90/shiprocket-go/inventory"
 	"github.com/venom90/shiprocket-go/listings"
+	"github.com/venom90/shiprocket-go/location"
 	"github.com/venom90/shiprocket-go/ndr"
 	"github.com/venom90/shiprocket-go/orders"
 	"github.com/venom90/shiprocket-go/products"
@@ -117,5 +121,25 @@ func ExampleNewClient() {
 			Quantity: "51",
 			Action:   "set",
 		},
+	})
+
+	_, _ = client.Location.GetPostcodeDetails(context.Background(), &location.PostcodeDetailsRequest{
+		Postcode: "110077",
+	})
+
+	_, _ = client.Account.GetStatement(context.Background(), &account.StatementParams{
+		Page:    1,
+		PerPage: 20,
+	})
+
+	_, _ = client.International.CheckServiceability(context.Background(), &international.ServiceabilityParams{
+		Weight:          "10",
+		COD:             0,
+		DeliveryCountry: "US",
+	})
+
+	_, _ = client.Hyperlocal.CheckServiceability(context.Background(), &courier.ServiceabilityParams{
+		PickupPostcode:   "110001",
+		DeliveryPostcode: "560034",
 	})
 }

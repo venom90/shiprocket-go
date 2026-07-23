@@ -106,6 +106,10 @@ New integrations should prefer the root client and service registration pattern:
 - `client.Listings`
 - `client.Channels`
 - `client.Inventory`
+- `client.Location`
+- `client.International`
+- `client.Hyperlocal`
+- `client.Account`
 - `client.Returns`
 - `client.Shipments`
 - `client.NDR`
@@ -155,3 +159,10 @@ Catalog surfaces are available through `client.Products`, `client.Listings`, `cl
 
 - Product samples are direct CSV downloads through `client.Products.DownloadSample(ctx)`.
 - Listing exports and listing samples currently return JSON payloads with `download_url`, so they are exposed through typed URL responses on `client.Listings`.
+
+## International, Hyperlocal, And Account APIs
+
+- `client.Location` covers country list, country-zone lookup, and postcode/locality lookup.
+- `client.International` covers international KYC, bank details, order create/update, wrapper shipment creation, international serviceability, AWB assignment, manifest generation, and the documented international tracking and pickup aliases.
+- `client.Hyperlocal` is an explicit convenience layer over the shared domestic services and automatically applies the hyperlocal serviceability flag when needed.
+- `client.Account` covers wallet balance, account statement, billing discrepancy, and file-import result inspection.

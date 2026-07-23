@@ -545,88 +545,109 @@ Acceptance Criteria
 ### 7.1 Countries and Locality
 
 Documented Endpoints
-- [ ] `GET /v1/external/countries`
-- [ ] `GET /v1/external/countries/show/{country_id}`
-- [ ] `GET /v1/external/open/postcode/details`
+- [x] `GET /v1/external/countries`
+- [x] `GET /v1/external/countries/show/{country_id}`
+- [x] `GET /v1/external/open/postcode/details`
 
 Tasks
-- [ ] Implement country code list, zones by country, and postcode/locality details.
-- [ ] Reuse these models for international order validation examples.
+- [x] Implement country code list, zones by country, and postcode/locality details.
+- [x] Reuse these models for international order validation examples.
+
+Notes
+- Verified on July 23, 2026 against Shiprocket's live docs at `https://apidocs.shiprocket.in/` plus the published Shiprocket Postman collection. Public `swagger.json` and `openapi.json` endpoints remain unavailable, so the live docs and collection continue to be the public source of truth.
+- Added a dedicated `client.Location` service for country list, country-zone lookup, and postcode/locality lookup.
+- These lookup models are now available to support international validation flows without forcing consumers to assemble raw requests manually.
 
 Testing
-- [ ] Add countries/locality tests.
+- [x] Add countries/locality tests.
 
 Acceptance Criteria
-- Regional lookup utilities are available and documented.
+- Regional lookup utilities are available and documented. ✅
 
 ### 7.2 International
 
 Documented Endpoints
-- [ ] `GET /v1/external/courier/track/awb/{awb_code}` alias in docs
-- [ ] `GET /v1/external/courier/track/shipment/{shipment_id}` alias in docs
-- [ ] `GET /v1/external/courier/track?order_id=123&channel_id=12345` alias in docs
-- [ ] `GET /v1/external/international/orders/track`
-- [ ] `POST /v1/external/international/settings/international_kyc`
-- [ ] `POST /v1/external/international/settings/add-bank-details`
-- [ ] `POST /v1/external/international/orders/create/adhoc`
-- [ ] `POST /v1/external/international/orders/update/adhoc`
-- [ ] `POST /v1/external/international/shipments/create/forward-shipment`
-- [ ] `GET /v1/external/international/courier/serviceability?order_id=247825513`
-- [ ] `POST /v1/external/international/courier/assign/awb`
-- [ ] `POST /v1/external/international/manifests/generate`
-- [ ] `POST /v1/external/courier/generate/pickup` alias in docs
+- [x] `GET /v1/external/courier/track/awb/{awb_code}` alias in docs
+- [x] `GET /v1/external/courier/track/shipment/{shipment_id}` alias in docs
+- [x] `GET /v1/external/courier/track?order_id=123&channel_id=12345` alias in docs
+- [x] `GET /v1/external/international/orders/track`
+- [x] `POST /v1/external/international/settings/international_kyc`
+- [x] `POST /v1/external/international/settings/add-bank-details`
+- [x] `POST /v1/external/international/orders/create/adhoc`
+- [x] `POST /v1/external/international/orders/update/adhoc`
+- [x] `POST /v1/external/international/shipments/create/forward-shipment`
+- [x] `GET /v1/external/international/courier/serviceability?order_id=247825513`
+- [x] `POST /v1/external/international/courier/assign/awb`
+- [x] `POST /v1/external/international/manifests/generate`
+- [x] `POST /v1/external/courier/generate/pickup` alias in docs
 
 Tasks
-- [ ] Implement international KYC and bank-detail submission.
-- [ ] Implement international order create/update.
-- [ ] Implement international wrapper shipment creation.
-- [ ] Implement international serviceability, AWB assignment, manifest generation, and tracking.
-- [ ] Decide whether shared tracking/pickup methods should be wrapped as international aliases or left as shared primitives plus convenience docs.
+- [x] Implement international KYC and bank-detail submission.
+- [x] Implement international order create/update.
+- [x] Implement international wrapper shipment creation.
+- [x] Implement international serviceability, AWB assignment, manifest generation, and tracking.
+- [x] Decide whether shared tracking/pickup methods should be wrapped as international aliases or left as shared primitives plus convenience docs.
+
+Notes
+- Added a dedicated `client.International` service for international order tracking, KYC submission, bank-detail submission, international order create/update, wrapper shipment creation, international serviceability, international AWB assignment, and international manifest generation.
+- The tracking and pickup aliases documented in Shiprocket's international section are now exposed as convenience wrappers on `client.International` over the shared tracking and pickup implementations. That keeps international integrations explicit without duplicating request logic.
+- International serviceability is modeled separately because its public response shape differs materially from domestic serviceability, especially in the nested `rate` payload and recommendation fields.
+- International create/update payloads retain the currently published field names such as `reasonOfExport`, `igstPaymentStatus`, and `Terms_Of_Invoice` exactly as Shiprocket documents them on July 23, 2026.
 
 Testing
-- [ ] Add international endpoint tests and example payload fixtures.
+- [x] Add international endpoint tests and example payload fixtures.
 
 Acceptance Criteria
-- International flows are explicitly supported rather than implied through generic helpers.
+- International flows are explicitly supported rather than implied through generic helpers. ✅
 
 ### 7.3 Hyperlocal
 
 Documented Endpoints
-- [ ] Orders aliases for create/list/detail/export
-- [ ] Courier aliases for AWB assignment and serviceability
-- [ ] Tracking aliases for AWB/multi-AWB/shipment/order tracking
-- [ ] Pickup address aliases for list/create
+- [x] Orders aliases for create/list/detail/export
+- [x] Courier aliases for AWB assignment and serviceability
+- [x] Tracking aliases for AWB/multi-AWB/shipment/order tracking
+- [x] Pickup address aliases for list/create
 
 Tasks
-- [ ] Audit whether Hyperlocal is only a documentation grouping over shared endpoints or requires payload semantics that deserve dedicated request helpers.
-- [ ] If there are semantic differences, add `hyperlocal` package/service convenience methods.
-- [ ] If not, document Hyperlocal as a use-case layer over shared orders/courier/tracking/pickup APIs.
+- [x] Audit whether Hyperlocal is only a documentation grouping over shared endpoints or requires payload semantics that deserve dedicated request helpers.
+- [x] If there are semantic differences, add `hyperlocal` package/service convenience methods.
+- [x] If not, document Hyperlocal as a use-case layer over shared orders/courier/tracking/pickup APIs.
+
+Notes
+- On July 23, 2026, Shiprocket's hyperlocal documentation is mostly a use-case grouping over shared orders, courier, tracking, and pickup endpoints, but courier serviceability includes hyperlocal-specific request semantics through `is_new_hyperlocal` plus source and destination coordinates.
+- Added a dedicated `client.Hyperlocal` convenience service that wraps the shared order, courier, tracking, and pickup-address flows while automatically applying the hyperlocal-specific serviceability flag when omitted.
+- This keeps hyperlocal support deliberate and visible in the SDK without cloning the underlying shared domestic APIs.
 
 Testing
-- [ ] Add at least one hyperlocal example test path or example fixture.
+- [x] Add at least one hyperlocal example test path or example fixture.
 
 Acceptance Criteria
-- Hyperlocal support is deliberate and documented rather than ambiguous.
+- Hyperlocal support is deliberate and documented rather than ambiguous. ✅
 
 ### 7.4 Account, Statement, Discrepancy, and Import Results
 
 Documented Endpoints
-- [ ] `GET /v1/external/account/details/wallet-balance`
-- [ ] `GET /v1/external/account/details/statement`
-- [ ] `GET /v1/external/billing/discrepancy`
-- [ ] `GET /v1/external/errors/{import_id}/check`
+- [x] `GET /v1/external/account/details/wallet-balance`
+- [x] `GET /v1/external/account/details/statement`
+- [x] `GET /v1/external/billing/discrepancy`
+- [x] `GET /v1/external/errors/{import_id}/check`
 
 Tasks
-- [ ] Implement wallet-balance retrieval.
-- [ ] Implement account statement retrieval.
-- [ ] Implement billing discrepancy retrieval.
-- [ ] Implement file import result inspection for bulk operations.
+- [x] Implement wallet-balance retrieval.
+- [x] Implement account statement retrieval.
+- [x] Implement billing discrepancy retrieval.
+- [x] Implement file import result inspection for bulk operations.
+
+Notes
+- Added a dedicated `client.Account` service for wallet balance, account statement, billing discrepancy, and file-import result inspection.
+- Statement filters now match the currently documented `page`, `per_page`, `from`, and `to` query parameters.
+- Import-result inspection is typed and reusable across bulk order, product, and listing imports so callers can follow up on background file-processing failures without decoding raw payloads manually.
 
 Testing
-- [ ] Add account/billing/import-result tests.
+- [x] Add account/billing/import-result tests.
 
 Acceptance Criteria
-- Operational finance/support endpoints are covered alongside logistics endpoints.
+- Operational finance/support endpoints are covered alongside logistics endpoints. ✅
 
 ## 8. Phase 8 — Documentation, Examples, CI, and Release Readiness
 
