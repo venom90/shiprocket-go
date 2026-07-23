@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -130,5 +132,184 @@ func TestRootClientExposesClassifiedErrors(t *testing.T) {
 	}
 	if rateErr.RetryAfterSeconds != 15 {
 		t.Fatalf("unexpected retry after: %d", rateErr.RetryAfterSeconds)
+	}
+}
+
+func TestNewClientWithCredentialsLogsInOnDemandAndCachesToken(t *testing.T) {
+	var loginCalls int32
+	var protectedCalls int32
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/v1/external/auth/login":
+			atomic.AddInt32(&loginCalls, 1)
+			_, _ = w.Write([]byte(`{"token":"jwt-token"}`))
+		case "/protected":
+			atomic.AddInt32(&protectedCalls, 1)
+			if got := r.Header.Get("Authorization"); got != "Bearer jwt-token" {
+				t.Fatalf("unexpected Authorization header: %q", got)
+			}
+			_, _ = w.Write([]byte(`{"ok":true}`))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient(Config{
+		BaseURL: server.URL,
+		Credentials: &Credentials{
+			Email:    "user@example.com",
+			Password: "password123",
+		},
+	})
+
+	for i := 0; i < 2; i++ {
+		var response struct {
+			OK bool `json:"ok"`
+		}
+		if err := client.Do(context.Background(), &Request{
+			Method: http.MethodGet,
+			Path:   "/protected",
+		}, &response); err != nil {
+			t.Fatalf("Do returned error: %v", err)
+		}
+		if !response.OK {
+			t.Fatal("expected ok response")
+		}
+	}
+
+	if got := atomic.LoadInt32(&loginCalls); got != 1 {
+		t.Fatalf("expected one login call, got %d", got)
+	}
+	if got := atomic.LoadInt32(&protectedCalls); got != 2 {
+		t.Fatalf("expected two protected calls, got %d", got)
+	}
+}
+
+func TestNewClientWithCredentialsCoalescesConcurrentLogin(t *testing.T) {
+	var loginCalls int32
+	var protectedCalls int32
+	loginRelease := make(chan struct{})
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/v1/external/auth/login":
+			atomic.AddInt32(&loginCalls, 1)
+			<-loginRelease
+			_, _ = w.Write([]byte(`{"token":"jwt-token"}`))
+		case "/protected":
+			atomic.AddInt32(&protectedCalls, 1)
+			if got := r.Header.Get("Authorization"); got != "Bearer jwt-token" {
+				t.Fatalf("unexpected Authorization header: %q", got)
+			}
+			_, _ = w.Write([]byte(`{"ok":true}`))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient(Config{
+		BaseURL: server.URL,
+		Credentials: &Credentials{
+			Email:    "user@example.com",
+			Password: "password123",
+		},
+	})
+
+	const workers = 8
+	errCh := make(chan error, workers)
+	var wg sync.WaitGroup
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			var response struct {
+				OK bool `json:"ok"`
+			}
+			errCh <- client.Do(context.Background(), &Request{
+				Method: http.MethodGet,
+				Path:   "/protected",
+			}, &response)
+		}()
+	}
+
+	time.Sleep(50 * time.Millisecond)
+	close(loginRelease)
+	wg.Wait()
+	close(errCh)
+
+	for err := range errCh {
+		if err != nil {
+			t.Fatalf("Do returned error: %v", err)
+		}
+	}
+
+	if got := atomic.LoadInt32(&loginCalls); got != 1 {
+		t.Fatalf("expected one login call, got %d", got)
+	}
+	if got := atomic.LoadInt32(&protectedCalls); got != workers {
+		t.Fatalf("expected %d protected calls, got %d", workers, got)
+	}
+}
+
+func TestManagedCredentialTokenSourceInvalidatesOnLogout(t *testing.T) {
+	var loginCalls int32
+	var logoutCalls int32
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/v1/external/auth/login":
+			atomic.AddInt32(&loginCalls, 1)
+			_, _ = w.Write([]byte(`{"token":"jwt-token"}`))
+		case "/v1/external/auth/logout":
+			atomic.AddInt32(&logoutCalls, 1)
+			w.WriteHeader(http.StatusNoContent)
+		case "/protected":
+			if r.Header.Get("Authorization") == "" {
+				t.Fatal("expected Authorization header")
+			}
+			_, _ = w.Write([]byte(`{"ok":true}`))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient(Config{
+		BaseURL: server.URL,
+		Credentials: &Credentials{
+			Email:    "user@example.com",
+			Password: "password123",
+		},
+	})
+
+	var response struct {
+		OK bool `json:"ok"`
+	}
+	if err := client.Do(context.Background(), &Request{
+		Method: http.MethodGet,
+		Path:   "/protected",
+	}, &response); err != nil {
+		t.Fatalf("first Do returned error: %v", err)
+	}
+
+	if err := client.Auth.Logout(context.Background()); err != nil {
+		t.Fatalf("Logout returned error: %v", err)
+	}
+
+	if err := client.Do(context.Background(), &Request{
+		Method: http.MethodGet,
+		Path:   "/protected",
+	}, &response); err != nil {
+		t.Fatalf("second Do returned error: %v", err)
+	}
+
+	if got := atomic.LoadInt32(&loginCalls); got != 2 {
+		t.Fatalf("expected two login calls, got %d", got)
+	}
+	if got := atomic.LoadInt32(&logoutCalls); got != 1 {
+		t.Fatalf("expected one logout call, got %d", got)
 	}
 }

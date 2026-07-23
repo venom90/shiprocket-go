@@ -67,6 +67,7 @@ type Client struct {
 
 func NewClient(cfg Config) *Client {
 	opts := make([]internalclient.Option, 0, 6)
+	var managedTokenSource TokenSource
 	if cfg.HTTPClient != nil {
 		opts = append(opts, internalclient.WithHTTPClient(cfg.HTTPClient))
 	}
@@ -93,6 +94,10 @@ func NewClient(cfg Config) *Client {
 	}
 
 	core := internalclient.New(cfg.BaseURL, opts...)
+	if cfg.Token == "" && cfg.TokenSource == nil && cfg.Credentials != nil {
+		managedTokenSource = authTokenSource(core, *cfg.Credentials)
+		core.TokenSource = managedTokenSource
+	}
 
 	client := &Client{
 		core: core,
@@ -109,6 +114,9 @@ func NewClient(cfg Config) *Client {
 			Middleware:  cfg.Middleware,
 		},
 	}
+	if managedTokenSource != nil {
+		client.Config.TokenSource = managedTokenSource
+	}
 
 	var authCredentials *auth.Credentials
 	if cfg.Credentials != nil {
@@ -122,6 +130,13 @@ func NewClient(cfg Config) *Client {
 	client.Orders = orders.NewService(core)
 
 	return client
+}
+
+func authTokenSource(core *internalclient.Client, credentials Credentials) TokenSource {
+	return auth.NewCredentialsTokenSource(core, auth.Credentials{
+		Email:    credentials.Email,
+		Password: credentials.Password,
+	})
 }
 
 func (c *Client) HTTPClient() *http.Client {

@@ -172,18 +172,25 @@ Acceptance Criteria
 ### 1.2 Auth Lifecycle Strategy
 
 Tasks
-- [ ] Decide whether the SDK stores bearer tokens internally, accepts a static token, or supports a token source interface.
-- [ ] Add thread-safe token refresh/login-on-demand behavior if credentials are configured.
-- [ ] Prevent concurrent stampedes when multiple goroutines trigger authentication simultaneously.
+- [x] Decide whether the SDK stores bearer tokens internally, accepts a static token, or supports a token source interface.
+- [x] Add thread-safe token refresh/login-on-demand behavior if credentials are configured.
+- [x] Prevent concurrent stampedes when multiple goroutines trigger authentication simultaneously.
+
+Notes
+- Completed on July 23, 2026.
+- Token resolution strategy is now explicit: use a caller-supplied `TokenSource` when present, otherwise use a static `Token`, and otherwise fall back to a credentials-backed managed token source.
+- Credentials-backed clients now perform lazy login on first authenticated request, cache the bearer token in memory, and serialize concurrent token acquisition behind a single login request.
+- Successful logout invalidates the managed token cache so the next authenticated request triggers a fresh login.
+- Shiprocket's public login response currently exposes only a bearer token and does not publish expiry metadata in the docs, so the SDK does not schedule proactive refresh. Refresh is lazy and cache-driven.
 
 Dependencies
 - Authentication API.
 
 Testing
-- [ ] Add concurrency tests for token acquisition.
+- [x] Add concurrency tests for token acquisition.
 
 Acceptance Criteria
-- Auth works safely in real multi-request integrations.
+- Auth works safely in real multi-request integrations. ✅
 
 ## 2. Phase 2 — Orders and Order Mutation APIs
 

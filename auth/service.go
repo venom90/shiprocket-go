@@ -43,6 +43,10 @@ type AuthService struct {
 // Deprecated: use LoginResponse instead.
 type AuthResponse = LoginResponse
 
+type tokenInvalidator interface {
+	InvalidateToken(token string)
+}
+
 func NewService(client *internalclient.Client, credentials *Credentials) *Service {
 	return &Service{
 		client:      client,
@@ -81,10 +85,18 @@ func (s *Service) LoginWithCredentials(ctx context.Context, credentials Credenti
 }
 
 func (s *Service) Logout(ctx context.Context) error {
-	return s.client.Do(ctx, &internalclient.Request{
+	if err := s.client.Do(ctx, &internalclient.Request{
 		Method: http.MethodPost,
 		Path:   "/v1/external/auth/logout",
-	}, nil)
+	}, nil); err != nil {
+		return err
+	}
+
+	if invalidator, ok := s.client.TokenSource.(tokenInvalidator); ok {
+		invalidator.InvalidateToken("")
+	}
+
+	return nil
 }
 
 func (s *Service) LogoutToken(ctx context.Context, token string) error {
@@ -97,10 +109,18 @@ func (s *Service) LogoutToken(ctx context.Context, token string) error {
 		internalclient.WithHooks(s.client.Hooks...),
 	)
 
-	return client.Do(ctx, &internalclient.Request{
+	if err := client.Do(ctx, &internalclient.Request{
 		Method: http.MethodPost,
 		Path:   "/v1/external/auth/logout",
-	}, nil)
+	}, nil); err != nil {
+		return err
+	}
+
+	if invalidator, ok := s.client.TokenSource.(tokenInvalidator); ok {
+		invalidator.InvalidateToken(token)
+	}
+
+	return nil
 }
 
 func (s *AuthService) Login(ctx context.Context) (*LoginResponse, error) {

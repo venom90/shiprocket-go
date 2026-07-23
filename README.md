@@ -81,8 +81,11 @@ func main() {
 - `client.Auth.LoginWithRequest(ctx, &shiprocket.LoginRequest{...})` is available when you want to supply credentials explicitly per call.
 - `client.Auth.Logout(ctx)` uses the token already configured on the client.
 - `client.Auth.LogoutToken(ctx, token)` is available when you need to revoke a specific bearer token without rebuilding the client.
-- For production integrations, prefer reusing a valid bearer token or a custom `TokenSource` over logging in before every request.
-- Automatic login-on-demand and refresh orchestration are not part of the SDK core yet; they will be handled in the auth lifecycle phase.
+- Token resolution precedence is: explicit `TokenSource`, then static `Token`, then credential-backed lazy login when `Credentials` are configured without the other two.
+- Credential-backed clients now log in on demand, cache the bearer token in memory, and coalesce concurrent token acquisition so only one login request is in flight at a time.
+- `client.Auth.Logout(ctx)` and `client.Auth.LogoutToken(ctx, token)` invalidate the managed in-memory token cache after successful logout.
+- For production integrations, prefer a long-lived bearer token or a custom `TokenSource` when you already have an external token lifecycle manager.
+- Shiprocket's public auth response currently exposes only the bearer token, not expiry metadata, so the SDK does not attempt proactive refresh scheduling. A fresh login happens lazily when the managed cache is empty.
 
 ## Public Entry Points
 
