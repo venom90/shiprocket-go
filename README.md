@@ -121,7 +121,7 @@ Detailed path-to-method mapping lives in [docs/reference/coverage.md](docs/refer
 - [Errors](docs/errors.md)
 - [Testing](docs/testing.md)
 - [Migration notes](docs/reference/migration.md)
-- [Contribution guide](CONTRIBUTION.md)
+- [Contribution guide](CONTRIBUTING.md)
 
 ## Examples
 
