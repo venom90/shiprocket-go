@@ -15,7 +15,15 @@ const DefaultBaseURL = internalclient.DefaultBaseURL
 type TokenSource = internalclient.TokenSource
 type Logger = internalclient.Logger
 type Hook = internalclient.Hook
+type Middleware = internalclient.Middleware
 type APIError = internalclient.APIError
+type ResponseMeta = internalclient.ResponseMeta
+type TransportError = internalclient.TransportError
+type AuthError = internalclient.AuthError
+type RateLimitError = internalclient.RateLimitError
+type ValidationError = internalclient.ValidationError
+type BusinessError = internalclient.BusinessError
+type ServerError = internalclient.ServerError
 type Request = internalclient.Request
 type MultipartBody = internalclient.MultipartBody
 type MultipartFile = internalclient.MultipartFile
@@ -44,6 +52,7 @@ type Config struct {
 	UserAgent   string
 	Logger      Logger
 	Hooks       []Hook
+	Middleware  []Middleware
 }
 
 type Client struct {
@@ -77,6 +86,9 @@ func NewClient(cfg Config) *Client {
 	if len(cfg.Hooks) > 0 {
 		opts = append(opts, internalclient.WithHooks(cfg.Hooks...))
 	}
+	if len(cfg.Middleware) > 0 {
+		opts = append(opts, internalclient.WithMiddleware(cfg.Middleware...))
+	}
 
 	core := internalclient.New(cfg.BaseURL, opts...)
 
@@ -92,6 +104,7 @@ func NewClient(cfg Config) *Client {
 			UserAgent:   core.UserAgent,
 			Logger:      cfg.Logger,
 			Hooks:       cfg.Hooks,
+			Middleware:  cfg.Middleware,
 		},
 	}
 

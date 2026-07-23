@@ -2,6 +2,7 @@ package shiprocket
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -95,5 +96,39 @@ func TestRootClientExposesSharedHTTPHelpers(t *testing.T) {
 	}
 	if download.FileName != "label.pdf" {
 		t.Fatalf("unexpected filename: %s", download.FileName)
+	}
+}
+
+func TestRootClientExposesClassifiedErrors(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Retry-After", "15")
+		w.Header().Set("X-Request-Id", "req-root")
+		w.WriteHeader(http.StatusTooManyRequests)
+		_, _ = w.Write([]byte(`{"message":"rate limited","status_code":429}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(Config{
+		BaseURL: server.URL,
+		Token:   "secret",
+	})
+
+	err := client.Do(context.Background(), &Request{
+		Method: http.MethodGet,
+		Path:   "/rate-limit",
+	}, nil)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+
+	var rateErr *RateLimitError
+	if !errors.As(err, &rateErr) {
+		t.Fatalf("expected RateLimitError, got %T", err)
+	}
+	if rateErr.Meta.RequestID != "req-root" {
+		t.Fatalf("unexpected request id: %s", rateErr.Meta.RequestID)
+	}
+	if rateErr.RetryAfterSeconds != 15 {
+		t.Fatalf("unexpected retry after: %d", rateErr.RetryAfterSeconds)
 	}
 }

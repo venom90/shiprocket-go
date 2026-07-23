@@ -29,6 +29,8 @@ type Hook interface {
 	After(*http.Response, error)
 }
 
+type Middleware func(http.RoundTripper) http.RoundTripper
+
 type Option func(*Client)
 
 type Client struct {
@@ -39,6 +41,7 @@ type Client struct {
 	UserAgent   string
 	Logger      Logger
 	Hooks       []Hook
+	Middleware  []Middleware
 }
 
 type Request struct {
@@ -138,6 +141,12 @@ func WithLogger(logger Logger) Option {
 func WithHooks(hooks ...Hook) Option {
 	return func(c *Client) {
 		c.Hooks = append(c.Hooks, hooks...)
+	}
+}
+
+func WithMiddleware(middleware ...Middleware) Option {
+	return func(c *Client) {
+		c.Middleware = append(c.Middleware, middleware...)
 	}
 }
 
@@ -255,7 +264,11 @@ func (c *Client) DoDownload(ctx context.Context, req *Request) (*Download, error
 func (c *Client) DoRaw(ctx context.Context, req *Request) (*http.Response, error) {
 	httpReq, err := c.NewRequest(ctx, req)
 	if err != nil {
-		return nil, err
+		return nil, &TransportError{
+			Err:    err,
+			Method: req.Method,
+			URL:    c.BaseURL + req.Path,
+		}
 	}
 
 	for _, hook := range c.Hooks {
@@ -266,13 +279,21 @@ func (c *Client) DoRaw(ctx context.Context, req *Request) (*http.Response, error
 		c.Logger.Printf("shiprocket request %s %s", httpReq.Method, httpReq.URL.String())
 	}
 
-	resp, err := c.HTTPClient.Do(httpReq)
+	resp, err := c.httpClient().Do(httpReq)
 
 	for _, hook := range c.Hooks {
 		hook.After(resp, err)
 	}
 
-	return resp, err
+	if err != nil {
+		return nil, &TransportError{
+			Err:    err,
+			Method: httpReq.Method,
+			URL:    httpReq.URL.String(),
+		}
+	}
+
+	return resp, nil
 }
 
 func DecodeResponse(resp *http.Response, out any, expectedCodes ...int) error {
@@ -294,6 +315,25 @@ func (c *Client) resolveToken(ctx context.Context) (string, error) {
 	}
 
 	return c.Token, nil
+}
+
+func (c *Client) httpClient() *http.Client {
+	if len(c.Middleware) == 0 {
+		return c.HTTPClient
+	}
+
+	cloned := *c.HTTPClient
+	transport := cloned.Transport
+	if transport == nil {
+		transport = http.DefaultTransport
+	}
+
+	for i := len(c.Middleware) - 1; i >= 0; i-- {
+		transport = c.Middleware[i](transport)
+	}
+	cloned.Transport = transport
+
+	return &cloned
 }
 
 func buildBody(req *Request) (io.Reader, string, error) {

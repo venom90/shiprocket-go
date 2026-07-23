@@ -104,19 +104,19 @@ Acceptance Criteria
 ### 0.3 Error Model and Observability
 
 Tasks
-- [ ] Define exported SDK error types for transport errors, auth errors, rate-limit errors, validation errors, and API business-rule errors.
-- [ ] Capture HTTP status, request ID headers if present, raw response body, and decoded API message fields.
-- [ ] Preserve enough response metadata for debugging without forcing consumers to work with raw `*http.Response`.
-- [ ] Add optional debug hooks or middleware integration points.
+- [x] Define exported SDK error types for transport errors, auth errors, rate-limit errors, validation errors, and API business-rule errors.
+- [x] Capture HTTP status, request ID headers if present, raw response body, and decoded API message fields.
+- [x] Preserve enough response metadata for debugging without forcing consumers to work with raw `*http.Response`.
+- [x] Add optional debug hooks or middleware integration points.
 
 Dependencies
 - Shared HTTP layer.
 
 Testing
-- [ ] Add tests for error classification and body parsing.
+- [x] Add tests for error classification and body parsing.
 
 Acceptance Criteria
-- Consumers can distinguish invalid credentials, invalid payloads, server-side failures, and rate limits programmatically.
+- Consumers can distinguish invalid credentials, invalid payloads, server-side failures, and rate limits programmatically. ✅
 
 ### 0.4 Type Modeling Standards
 

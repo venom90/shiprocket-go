@@ -12,6 +12,23 @@ import (
 	"time"
 )
 
+type testHook struct {
+	before func(*http.Request)
+	after  func(*http.Response, error)
+}
+
+func (h testHook) Before(req *http.Request) {
+	if h.before != nil {
+		h.before(req)
+	}
+}
+
+func (h testHook) After(resp *http.Response, err error) {
+	if h.after != nil {
+		h.after(resp, err)
+	}
+}
+
 func TestNewRequestBuildsJSONQueryAndPathParams(t *testing.T) {
 	client := New("https://example.com", WithToken("secret"), WithUserAgent("test-agent"))
 
@@ -112,18 +129,18 @@ func TestDecodeResponseReturnsStructuredAPIError(t *testing.T) {
 		t.Fatal("expected error, got nil")
 	}
 
-	apiErr, ok := err.(*APIError)
+	validationErr, ok := err.(*ValidationError)
 	if !ok {
-		t.Fatalf("expected *APIError, got %T", err)
+		t.Fatalf("expected *ValidationError, got %T", err)
 	}
-	if apiErr.StatusCode != 422 {
-		t.Fatalf("unexpected status code: %d", apiErr.StatusCode)
+	if validationErr.Meta.StatusCode != 422 {
+		t.Fatalf("unexpected status code: %d", validationErr.Meta.StatusCode)
 	}
-	if apiErr.Message != "Oops! Something went wrong." {
-		t.Fatalf("unexpected message: %q", apiErr.Message)
+	if validationErr.Message != "Oops! Something went wrong." {
+		t.Fatalf("unexpected message: %q", validationErr.Message)
 	}
-	if len(apiErr.Errors["file"]) != 1 {
-		t.Fatalf("unexpected errors payload: %+v", apiErr.Errors)
+	if len(validationErr.Errors["file"]) != 1 {
+		t.Fatalf("unexpected errors payload: %+v", validationErr.Errors)
 	}
 }
 
@@ -242,4 +259,176 @@ func TestDoRespectsHTTPClientTimeout(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected timeout error, got nil")
 	}
+	var transportErr *TransportError
+	if !errors.As(err, &transportErr) {
+		t.Fatalf("expected TransportError, got %T", err)
+	}
+}
+
+func TestErrorClassificationAndMetadata(t *testing.T) {
+	cases := []struct {
+		name       string
+		statusCode int
+		headers    map[string]string
+		body       string
+		target     any
+		assert     func(t *testing.T, err error)
+	}{
+		{
+			name:       "auth",
+			statusCode: http.StatusUnauthorized,
+			headers:    map[string]string{"X-Request-Id": "req-auth"},
+			body:       `{"message":"invalid token","status_code":401}`,
+			target:     &AuthError{},
+			assert: func(t *testing.T, err error) {
+				var authErr *AuthError
+				if !errors.As(err, &authErr) {
+					t.Fatalf("expected AuthError, got %T", err)
+				}
+				if authErr.Meta.RequestID != "req-auth" {
+					t.Fatalf("unexpected request id: %s", authErr.Meta.RequestID)
+				}
+			},
+		},
+		{
+			name:       "rate-limit",
+			statusCode: http.StatusTooManyRequests,
+			headers:    map[string]string{"Retry-After": "60"},
+			body:       `{"message":"slow down","status_code":429}`,
+			target:     &RateLimitError{},
+			assert: func(t *testing.T, err error) {
+				var rateErr *RateLimitError
+				if !errors.As(err, &rateErr) {
+					t.Fatalf("expected RateLimitError, got %T", err)
+				}
+				if rateErr.RetryAfterSeconds != 60 {
+					t.Fatalf("unexpected retry after: %d", rateErr.RetryAfterSeconds)
+				}
+			},
+		},
+		{
+			name:       "validation",
+			statusCode: http.StatusUnprocessableEntity,
+			body:       `{"message":"bad data","errors":{"field":["required"]},"status_code":422}`,
+			target:     &ValidationError{},
+			assert: func(t *testing.T, err error) {
+				var validationErr *ValidationError
+				if !errors.As(err, &validationErr) {
+					t.Fatalf("expected ValidationError, got %T", err)
+				}
+				if len(validationErr.Errors["field"]) != 1 {
+					t.Fatalf("unexpected errors payload: %+v", validationErr.Errors)
+				}
+			},
+		},
+		{
+			name:       "business",
+			statusCode: http.StatusConflict,
+			body:       `{"message":"already processed","status_code":409}`,
+			target:     &BusinessError{},
+			assert: func(t *testing.T, err error) {
+				var businessErr *BusinessError
+				if !errors.As(err, &businessErr) {
+					t.Fatalf("expected BusinessError, got %T", err)
+				}
+			},
+		},
+		{
+			name:       "server",
+			statusCode: http.StatusBadGateway,
+			body:       `{"message":"upstream failed","status_code":502}`,
+			target:     &ServerError{},
+			assert: func(t *testing.T, err error) {
+				var serverErr *ServerError
+				if !errors.As(err, &serverErr) {
+					t.Fatalf("expected ServerError, got %T", err)
+				}
+				if serverErr.Meta.StatusCode != 502 {
+					t.Fatalf("unexpected status code: %d", serverErr.Meta.StatusCode)
+				}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				for key, value := range tc.headers {
+					w.Header().Set(key, value)
+				}
+				w.WriteHeader(tc.statusCode)
+				_, _ = w.Write([]byte(tc.body))
+			}))
+			defer server.Close()
+
+			client := New(server.URL)
+			err := client.Do(context.Background(), &Request{
+				Method: http.MethodGet,
+				Path:   "/test",
+			}, nil)
+			if err == nil {
+				t.Fatal("expected error, got nil")
+			}
+			tc.assert(t, err)
+		})
+	}
+}
+
+func TestMiddlewareAndHooksProvideObservabilityIntegration(t *testing.T) {
+	beforeCalled := false
+	afterCalled := false
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("X-Debug"); got != "enabled" {
+			t.Fatalf("unexpected middleware header: %q", got)
+		}
+		w.Header().Set("X-Request-Id", "req-hook")
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	client := New(
+		server.URL,
+		WithHooks(testHook{
+			before: func(req *http.Request) {
+				beforeCalled = true
+			},
+			after: func(resp *http.Response, err error) {
+				afterCalled = true
+				if err != nil {
+					t.Fatalf("unexpected hook error: %v", err)
+				}
+				if resp.Header.Get("X-Request-Id") != "req-hook" {
+					t.Fatalf("unexpected response header in hook: %s", resp.Header.Get("X-Request-Id"))
+				}
+			},
+		}),
+		WithMiddleware(func(next http.RoundTripper) http.RoundTripper {
+			return roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+				req.Header.Set("X-Debug", "enabled")
+				return next.RoundTrip(req)
+			})
+		}),
+	)
+
+	var response struct {
+		OK bool `json:"ok"`
+	}
+	if err := client.Do(context.Background(), &Request{
+		Method: http.MethodGet,
+		Path:   "/hooked",
+	}, &response); err != nil {
+		t.Fatalf("Do returned error: %v", err)
+	}
+	if !beforeCalled || !afterCalled {
+		t.Fatalf("expected hooks to be called: before=%v after=%v", beforeCalled, afterCalled)
+	}
+	if !response.OK {
+		t.Fatal("expected ok response")
+	}
+}
+
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
 }
