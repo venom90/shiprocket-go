@@ -1,7 +1,9 @@
 package shiprocket
 
 import (
+	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -54,5 +56,44 @@ func TestNewClientRespectsCustomConfig(t *testing.T) {
 	}
 	if client.Config.Token != "secret" {
 		t.Fatalf("unexpected token in config: %s", client.Config.Token)
+	}
+}
+
+func TestRootClientExposesSharedHTTPHelpers(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Authorization"); got != "Bearer secret" {
+			t.Fatalf("unexpected Authorization header: %q", got)
+		}
+		w.Header().Set("Content-Type", "application/pdf")
+		w.Header().Set("Content-Disposition", `attachment; filename="label.pdf"`)
+		_, _ = w.Write([]byte("%PDF-label"))
+	}))
+	defer server.Close()
+
+	client := NewClient(Config{
+		BaseURL: server.URL,
+		Token:   "secret",
+	})
+
+	body, err := client.DoBytes(context.Background(), &Request{
+		Method: http.MethodGet,
+		Path:   "/label",
+	})
+	if err != nil {
+		t.Fatalf("DoBytes returned error: %v", err)
+	}
+	if string(body) != "%PDF-label" {
+		t.Fatalf("unexpected body: %q", string(body))
+	}
+
+	download, err := client.DoDownload(context.Background(), &Request{
+		Method: http.MethodGet,
+		Path:   "/label",
+	})
+	if err != nil {
+		t.Fatalf("DoDownload returned error: %v", err)
+	}
+	if download.FileName != "label.pdf" {
+		t.Fatalf("unexpected filename: %s", download.FileName)
 	}
 }

@@ -16,6 +16,10 @@ type TokenSource = internalclient.TokenSource
 type Logger = internalclient.Logger
 type Hook = internalclient.Hook
 type APIError = internalclient.APIError
+type Request = internalclient.Request
+type MultipartBody = internalclient.MultipartBody
+type MultipartFile = internalclient.MultipartFile
+type Download = internalclient.Download
 
 type Credentials struct {
 	Email    string
@@ -111,4 +115,20 @@ func (c *Client) HTTPClient() *http.Client {
 
 func (c *Client) BaseURL() string {
 	return c.core.BaseURL
+}
+
+func (c *Client) Do(ctx context.Context, req *Request, out any) error {
+	return c.core.Do(ctx, req, out)
+}
+
+func (c *Client) DoRaw(ctx context.Context, req *Request) (*http.Response, error) {
+	return c.core.DoRaw(ctx, req)
+}
+
+func (c *Client) DoBytes(ctx context.Context, req *Request) ([]byte, error) {
+	return c.core.DoBytes(ctx, req)
+}
+
+func (c *Client) DoDownload(ctx context.Context, req *Request) (*Download, error) {
+	return c.core.DoDownload(ctx, req)
 }

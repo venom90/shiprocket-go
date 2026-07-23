@@ -84,22 +84,22 @@ Acceptance Criteria
 ### 0.2 Shared HTTP Layer
 
 Tasks
-- [ ] Replace `pkg.SendRequest` with a request builder that supports JSON, form-data, query params, path params, and empty bodies.
-- [ ] Add context-aware methods across the SDK: `Foo(ctx context.Context, req *Request)`.
-- [ ] Add shared auth header injection for bearer tokens.
-- [ ] Add helpers for typed success decode, raw file/binary responses, and structured API error decode.
-- [ ] Support success responses that return `200`, `201`, `202`, and `204` depending on endpoint behavior.
-- [ ] Add helpers for endpoints that are effectively file generators returning URLs or printable artifacts.
+- [x] Replace `pkg.SendRequest` with a request builder that supports JSON, form-data, query params, path params, and empty bodies.
+- [x] Add context-aware methods across the SDK: `Foo(ctx context.Context, req *Request)`.
+- [x] Add shared auth header injection for bearer tokens.
+- [x] Add helpers for typed success decode, raw file/binary responses, and structured API error decode.
+- [x] Support success responses that return `200`, `201`, `202`, and `204` depending on endpoint behavior.
+- [x] Add helpers for endpoints that are effectively file generators returning URLs or printable artifacts.
 
 Dependencies
 - Client architecture.
 
 Testing
-- [ ] Add HTTP transport tests covering JSON, multipart, no-body `GET`, path params, query params, and error bodies.
-- [ ] Add cancellation and timeout tests using `context.Context`.
+- [x] Add HTTP transport tests covering JSON, multipart, no-body `GET`, path params, query params, and error bodies.
+- [x] Add cancellation and timeout tests using `context.Context`.
 
 Acceptance Criteria
-- Every documented endpoint shape used by Shiprocket can be represented through the shared HTTP layer.
+- Every documented endpoint shape used by Shiprocket can be represented through the shared HTTP layer. ✅
 
 ### 0.3 Error Model and Observability
 

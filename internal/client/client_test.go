@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -130,5 +131,115 @@ func TestWithTimeoutSetsHTTPClientTimeout(t *testing.T) {
 	client := New(DefaultBaseURL, WithTimeout(5*time.Second))
 	if client.HTTPClient.Timeout != 5*time.Second {
 		t.Fatalf("unexpected timeout: %s", client.HTTPClient.Timeout)
+	}
+}
+
+func TestDoSupportsNoBodyGET(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Fatalf("unexpected method: %s", r.Method)
+		}
+		if r.ContentLength != 0 {
+			t.Fatalf("expected empty body, got content length %d", r.ContentLength)
+		}
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	client := New(server.URL)
+	var response struct {
+		OK bool `json:"ok"`
+	}
+	if err := client.Do(context.Background(), &Request{
+		Method: http.MethodGet,
+		Path:   "/health",
+	}, &response); err != nil {
+		t.Fatalf("Do returned error: %v", err)
+	}
+	if !response.OK {
+		t.Fatal("expected ok response")
+	}
+}
+
+func TestDoBytesReturnsRawBody(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/pdf")
+		_, _ = w.Write([]byte("%PDF-test"))
+	}))
+	defer server.Close()
+
+	client := New(server.URL)
+	body, err := client.DoBytes(context.Background(), &Request{
+		Method: http.MethodGet,
+		Path:   "/label.pdf",
+	})
+	if err != nil {
+		t.Fatalf("DoBytes returned error: %v", err)
+	}
+	if string(body) != "%PDF-test" {
+		t.Fatalf("unexpected body: %q", string(body))
+	}
+}
+
+func TestDoDownloadReturnsPrintableArtifactMetadata(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/pdf")
+		w.Header().Set("Content-Disposition", `attachment; filename="manifest.pdf"`)
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte("%PDF-manifest"))
+	}))
+	defer server.Close()
+
+	client := New(server.URL)
+	download, err := client.DoDownload(context.Background(), &Request{
+		Method:       http.MethodGet,
+		Path:         "/documents/manifest",
+		ExpectedCode: []int{http.StatusCreated},
+	})
+	if err != nil {
+		t.Fatalf("DoDownload returned error: %v", err)
+	}
+	if download.ContentType != "application/pdf" {
+		t.Fatalf("unexpected content type: %s", download.ContentType)
+	}
+	if download.FileName != "manifest.pdf" {
+		t.Fatalf("unexpected filename: %s", download.FileName)
+	}
+	if string(download.Body) != "%PDF-manifest" {
+		t.Fatalf("unexpected body: %q", string(download.Body))
+	}
+}
+
+func TestDoRespectsCanceledContext(t *testing.T) {
+	client := New("https://example.com")
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := client.Do(ctx, &Request{
+		Method: http.MethodGet,
+		Path:   "/canceled",
+	}, nil)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context.Canceled, got %v", err)
+	}
+}
+
+func TestDoRespectsHTTPClientTimeout(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(100 * time.Millisecond)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	client := New(server.URL, WithTimeout(10*time.Millisecond))
+	err := client.Do(context.Background(), &Request{
+		Method: http.MethodGet,
+		Path:   "/slow",
+	}, nil)
+	if err == nil {
+		t.Fatal("expected timeout error, got nil")
 	}
 }

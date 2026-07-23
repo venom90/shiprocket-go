@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 	"time"
 )
@@ -63,6 +64,14 @@ type MultipartFile struct {
 	FileName    string
 	Reader      io.Reader
 	ContentType string
+}
+
+type Download struct {
+	StatusCode  int
+	Headers     http.Header
+	ContentType string
+	FileName    string
+	Body        []byte
 }
 
 func New(baseURL string, opts ...Option) *Client {
@@ -204,6 +213,45 @@ func (c *Client) Do(ctx context.Context, req *Request, out any) error {
 	return DecodeResponse(resp, out, req.ExpectedCode...)
 }
 
+func (c *Client) DoBytes(ctx context.Context, req *Request) ([]byte, error) {
+	resp, err := c.DoRaw(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if !isExpectedStatus(resp.StatusCode, req.ExpectedCode) {
+		return nil, newAPIError(resp)
+	}
+
+	return io.ReadAll(resp.Body)
+}
+
+func (c *Client) DoDownload(ctx context.Context, req *Request) (*Download, error) {
+	resp, err := c.DoRaw(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if !isExpectedStatus(resp.StatusCode, req.ExpectedCode) {
+		return nil, newAPIError(resp)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Download{
+		StatusCode:  resp.StatusCode,
+		Headers:     resp.Header.Clone(),
+		ContentType: resp.Header.Get("Content-Type"),
+		FileName:    downloadFileName(resp),
+		Body:        body,
+	}, nil
+}
+
 func (c *Client) DoRaw(ctx context.Context, req *Request) (*http.Response, error) {
 	httpReq, err := c.NewRequest(ctx, req)
 	if err != nil {
@@ -302,4 +350,24 @@ func isExpectedStatus(statusCode int, expectedCodes []int) bool {
 	}
 
 	return false
+}
+
+func downloadFileName(resp *http.Response) string {
+	if cd := resp.Header.Get("Content-Disposition"); cd != "" {
+		for _, part := range strings.Split(cd, ";") {
+			part = strings.TrimSpace(part)
+			if strings.HasPrefix(strings.ToLower(part), "filename=") {
+				return strings.Trim(strings.TrimPrefix(part, "filename="), `"`)
+			}
+		}
+	}
+
+	if resp.Request != nil && resp.Request.URL != nil {
+		base := path.Base(resp.Request.URL.Path)
+		if base != "." && base != "/" && base != "" {
+			return base
+		}
+	}
+
+	return ""
 }
