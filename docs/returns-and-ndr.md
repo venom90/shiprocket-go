@@ -27,5 +27,5 @@ Supported action constants:
 
 Runnable examples:
 
-- [Create return order](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/examples/create-return-order/main.go)
-- [Act on NDR](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/examples/act-on-ndr/main.go)
+- [Create return order](examples/create-return-order/main.go)
+- [Act on NDR](examples/act-on-ndr/main.go)

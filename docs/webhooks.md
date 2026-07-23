@@ -24,4 +24,4 @@ type TrackingWebhook struct {
 - Treat webhook handling as idempotent. Persist dedupe keys based on AWB, status code, and event time when possible.
 - Return `2xx` only after durable processing or enqueueing.
 
-Webhook event shapes should be reconciled with [Tracking](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/tracking.md).
+Webhook event shapes should be reconciled with [Tracking](tracking.md).

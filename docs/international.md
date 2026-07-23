@@ -23,4 +23,4 @@ On July 23, 2026, Shiprocket's international docs also pointed to shared domesti
 
 The SDK exposes these through `client.International` as explicit wrapper methods, but the underlying API paths are shared with the shipment and courier services.
 
-Runnable example: [docs/examples/international-serviceability](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/examples/international-serviceability/main.go).
+Runnable example: [docs/examples/international-serviceability](examples/international-serviceability/main.go).

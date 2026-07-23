@@ -39,4 +39,4 @@ Pass a custom `http.Client` when you need:
 - tracing transports
 - test doubles outside `httptest`
 
-See [Testing](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/testing.md) for examples.
+See [Testing](testing.md) for examples.

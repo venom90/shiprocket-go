@@ -4,7 +4,7 @@ Unofficial Shiprocket Go SDK with typed services for the public Shiprocket API s
 
 - Docs source audited against `https://apidocs.shiprocket.in/` and Shiprocket's published Postman collection on July 23, 2026.
 - Minimum supported Go version: `1.22`
-- Release posture: pre-`v1`, compatibility policy documented in [RELEASING.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/RELEASING.md)
+- Release posture: pre-`v1`, compatibility policy documented in [RELEASING.md](RELEASING.md)
 
 ## Installation
 
@@ -103,28 +103,28 @@ Compatibility wrappers remain available for older integrations, but new code sho
 | International and Hyperlocal | Complete | Dedicated international endpoints plus documented aliases and hyperlocal wrapper layer |
 | Account and Billing | Complete | Wallet balance, statement, discrepancy, import result checks |
 
-Detailed path-to-method mapping lives in [docs/reference/coverage.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/reference/coverage.md).
+Detailed path-to-method mapping lives in [docs/reference/coverage.md](docs/reference/coverage.md).
 
 ## Docs
 
-- [Docs index](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/index.md)
-- [Getting started](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/getting-started.md)
-- [Client configuration](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/client.md)
-- [Orders](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/orders.md)
-- [Couriers](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/couriers.md)
-- [Shipments](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/shipments.md)
-- [Tracking](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/tracking.md)
-- [Returns and NDR](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/returns-and-ndr.md)
-- [Catalog](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/catalog.md)
-- [International](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/international.md)
-- [Account and billing](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/account-and-billing.md)
-- [Errors](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/errors.md)
-- [Testing](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/testing.md)
-- [Migration notes](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/reference/migration.md)
+- [Docs index](docs/index.md)
+- [Getting started](docs/getting-started.md)
+- [Client configuration](docs/client.md)
+- [Orders](docs/orders.md)
+- [Couriers](docs/couriers.md)
+- [Shipments](docs/shipments.md)
+- [Tracking](docs/tracking.md)
+- [Returns and NDR](docs/returns-and-ndr.md)
+- [Catalog](docs/catalog.md)
+- [International](docs/international.md)
+- [Account and billing](docs/account-and-billing.md)
+- [Errors](docs/errors.md)
+- [Testing](docs/testing.md)
+- [Migration notes](docs/reference/migration.md)
 
 ## Examples
 
-Runnable example programs live under [docs/examples](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/examples). Each one can be executed with `go run ./docs/examples/<name>` after setting the documented environment variables.
+Runnable example programs live under [docs/examples](docs/examples). Each one can be executed with `go run ./docs/examples/<name>` after setting the documented environment variables.
 
 ## Testing and CI
 
@@ -133,4 +133,4 @@ Runnable example programs live under [docs/examples](/Users/tirumalrao/workspace
 - `go test -coverprofile=coverage.out ./...`
 - `golangci-lint run`
 
-GitHub Actions definitions live in [.github/workflows/ci.yml](/Users/tirumalrao/workspace/venom90/shiprocket-go/.github/workflows/ci.yml) and [.github/workflows/live-smoke.yml](/Users/tirumalrao/workspace/venom90/shiprocket-go/.github/workflows/live-smoke.yml).
+GitHub Actions definitions live in [.github/workflows/ci.yml](.github/workflows/ci.yml) and [.github/workflows/live-smoke.yml](.github/workflows/live-smoke.yml).

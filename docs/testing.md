@@ -44,4 +44,4 @@ When adding new endpoints:
 1. Assert HTTP method, path, headers, query, and body with `httptest`.
 2. Assert typed response decoding, including partial or inconsistent fields.
 3. Add at least one unhappy-path case for API error classification.
-4. Update [docs/reference/coverage.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/reference/coverage.md) and the relevant example if the new endpoint changes the main workflow.
+4. Update [docs/reference/coverage.md](reference/coverage.md) and the relevant example if the new endpoint changes the main workflow.

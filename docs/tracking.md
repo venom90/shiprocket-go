@@ -13,6 +13,6 @@
 - Shipment ID: use when your system stores Shiprocket shipment IDs.
 - Order ID and channel ID: use when reconciling channel-originated shipments.
 
-Runnable example: [docs/examples/track-shipment](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/examples/track-shipment/main.go).
+Runnable example: [docs/examples/track-shipment](examples/track-shipment/main.go).
 
-Webhook consumers should align scan-event handling with [Webhooks](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/webhooks.md).
+Webhook consumers should align scan-event handling with [Webhooks](webhooks.md).

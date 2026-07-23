@@ -59,4 +59,4 @@ func main() {
 }
 ```
 
-Next: [Client configuration](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/client.md) and [Authentication](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/authentication.md).
+Next: [Client configuration](client.md) and [Authentication](authentication.md).

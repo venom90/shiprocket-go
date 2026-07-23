@@ -10,9 +10,9 @@ Source of truth:
 ## Sync process
 
 1. Re-audit the public docs and collection.
-2. Compare endpoint paths against this file and [spec/todo.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/spec/todo.md).
+2. Compare endpoint paths against this file and [spec/todo.md](../../spec/todo.md).
 3. Update method mappings and alias notes.
-4. Run the release checklist in [RELEASING.md](/Users/tirumalrao/workspace/venom90/shiprocket-go/RELEASING.md).
+4. Run the release checklist in [RELEASING.md](../../RELEASING.md).
 
 ## Authentication
 

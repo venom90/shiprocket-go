@@ -20,4 +20,4 @@
 - Listing sample and listing exports currently return `download_url` fields in JSON.
 - Inventory updates are PATCH-style semantic operations modeled through `inventory.UpdatePayload`.
 
-Runnable example: [docs/examples/import-and-check-status](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/examples/import-and-check-status/main.go).
+Runnable example: [docs/examples/import-and-check-status](examples/import-and-check-status/main.go).

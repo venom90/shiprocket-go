@@ -27,4 +27,4 @@ Shiprocket's public auth response on July 23, 2026 exposes a bearer token but no
 - `429`: respect `Retry-After` when present.
 - `5xx`: retry with backoff at the application layer.
 
-See [Errors](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/errors.md) for typed SDK error mapping.
+See [Errors](errors.md) for typed SDK error mapping.

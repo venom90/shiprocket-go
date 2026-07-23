@@ -30,4 +30,4 @@ Use the Shiprocket order ID when calling detail or operational APIs unless Shipr
 4. Generate pickup with `client.Couriers.GeneratePickup(...)`.
 5. Generate label or invoice with `client.Shipments`.
 
-Runnable example: [docs/examples/create-custom-order](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/examples/create-custom-order/main.go).
+Runnable example: [docs/examples/create-custom-order](examples/create-custom-order/main.go).

@@ -27,5 +27,5 @@ The hyperlocal grouping in Shiprocket's public docs is mostly a documentation al
 
 Runnable examples:
 
-- [Assign AWB](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/examples/assign-awb/main.go)
-- [Generate pickup](/Users/tirumalrao/workspace/venom90/shiprocket-go/docs/examples/generate-pickup/main.go)
+- [Assign AWB](examples/assign-awb/main.go)
+- [Generate pickup](examples/generate-pickup/main.go)
