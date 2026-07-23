@@ -6,7 +6,9 @@ import (
 	"time"
 
 	shiprocket "github.com/venom90/shiprocket-go"
+	"github.com/venom90/shiprocket-go/ndr"
 	"github.com/venom90/shiprocket-go/orders"
+	"github.com/venom90/shiprocket-go/returns"
 	"github.com/venom90/shiprocket-go/shipment"
 )
 
@@ -50,4 +52,39 @@ func ExampleNewClient() {
 	if label != nil {
 		_, _ = client.Shipments.DownloadArtifact(context.Background(), label.LabelURL)
 	}
+
+	_, _ = client.Returns.CreateReturnOrder(context.Background(), &returns.CreateReturnOrderRequest{
+		OrderID:              "R-1001",
+		OrderDate:            "2026-07-23",
+		PickupCustomerName:   "Jane",
+		PickupAddress:        "Customer Street 1",
+		PickupCity:           "Delhi",
+		PickupState:          "Delhi",
+		PickupCountry:        "India",
+		PickupPincode:        "110001",
+		PickupEmail:          "jane@example.com",
+		PickupPhone:          "9999999999",
+		ShippingCustomerName: "Warehouse",
+		ShippingAddress:      "Return Hub",
+		ShippingCity:         "Delhi",
+		ShippingCountry:      "India",
+		ShippingPincode:      "110002",
+		ShippingState:        "Delhi",
+		ShippingPhone:        "8888888888",
+		OrderItems: []returns.ReturnOrderItem{
+			{Name: "Widget", SKU: "W-1", Units: 1, SellingPrice: "499"},
+		},
+		PaymentMethod: "PREPAID",
+		SubTotal:      499,
+		Length:        10,
+		Breadth:       10,
+		Height:        10,
+		Weight:        0.5,
+	})
+
+	_, _ = client.NDR.Act(context.Background(), &ndr.ActionRequest{
+		AWB:      "8373927474982",
+		Action:   ndr.ActionReturn,
+		Comments: "Customer refused delivery",
+	})
 }

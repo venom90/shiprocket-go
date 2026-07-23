@@ -393,43 +393,55 @@ Acceptance Criteria
 ### 5.1 Return & Exchange Orders
 
 Documented Endpoints
-- [ ] `POST /v1/external/orders/create/return`
-- [ ] `POST /v1/external/orders/create/exchange`
-- [ ] `POST /v1/external/orders/edit`
-- [ ] `GET /v1/external/orders/processing/return`
-- [ ] `GET /v1/external/courier/serviceability/`
-- [ ] `POST /v1/external/courier/assign/awb`
+- [x] `POST /v1/external/orders/create/return`
+- [x] `POST /v1/external/orders/create/exchange`
+- [x] `POST /v1/external/orders/edit`
+- [x] `GET /v1/external/orders/processing/return`
+- [x] `GET /v1/external/courier/serviceability/`
+- [x] `POST /v1/external/courier/assign/awb`
 
 Tasks
-- [ ] Implement return-order creation.
-- [ ] Implement exchange-order creation.
-- [ ] Implement return-order update flow.
-- [ ] Implement return-order listing.
-- [ ] Decide whether return/exchange serviceability and AWB methods should wrap shared courier methods or expose dedicated convenience methods.
+- [x] Implement return-order creation.
+- [x] Implement exchange-order creation.
+- [x] Implement return-order update flow.
+- [x] Implement return-order listing.
+- [x] Decide whether return/exchange serviceability and AWB methods should wrap shared courier methods or expose dedicated convenience methods.
+
+Notes
+- Verified on July 23, 2026 against Shiprocket's live docs at `https://apidocs.shiprocket.in/` plus the published Shiprocket Postman collection. Public `swagger.json` and `openapi.json` endpoints remain unavailable, so the live docs and collection were used as the public contract source again for this phase.
+- Added a dedicated `client.Returns` service for return creation, exchange creation, return-order updates, and return-order listing.
+- Return-specific serviceability lookup and AWB assignment are exposed as convenience methods on `client.Returns`, but they intentionally reuse the shared courier DTOs and routes. The service forces `is_return=1` by default so reverse-logistics callers do not have to drop down to generic courier calls manually.
+- Exchange-order request modeling now preserves the explicit empty-string fields Shiprocket's published examples include, because the current public contract shows those fields being sent even when blank.
 
 Testing
-- [ ] Add return/exchange request and response tests.
+- [x] Add return/exchange request and response tests.
 
 Acceptance Criteria
-- Reverse-logistics flows are available without forcing consumers to piece together generic calls manually.
+- Reverse-logistics flows are available without forcing consumers to piece together generic calls manually. ✅
 
 ### 5.2 NDR
 
 Documented Endpoints
-- [ ] `GET /v1/external/ndr/all`
-- [ ] `GET /v1/external/ndr/{AWB}`
-- [ ] `POST /v1/external/ndr/{awb}/action`
+- [x] `GET /v1/external/ndr/all`
+- [x] `GET /v1/external/ndr/{AWB}`
+- [x] `POST /v1/external/ndr/{awb}/action`
 
 Tasks
-- [ ] Implement NDR list and detail methods.
-- [ ] Implement NDR action flow with typed action enums and payloads.
-- [ ] Add docs/examples for common NDR remediations.
+- [x] Implement NDR list and detail methods.
+- [x] Implement NDR action flow with typed action enums and payloads.
+- [x] Add docs/examples for common NDR remediations.
+
+Notes
+- Added a dedicated `client.NDR` service with list, detail, and action methods.
+- NDR actions are modeled with typed enums for the currently documented values: `fake-attempt`, `re-attempt`, and `return`.
+- The NDR action API currently returns `202 Accepted` for successful updates in Shiprocket's published example. The SDK accepts both `200` and `202` for this workflow and keeps the response typed.
+- Common remediation examples are now documented in the README using `client.NDR.Act(...)` so consumers have a direct path for reattempt and return flows.
 
 Testing
-- [ ] Add list/detail/action tests.
+- [x] Add list/detail/action tests.
 
 Acceptance Criteria
-- NDR operations are fully represented with typed workflows.
+- NDR operations are fully represented with typed workflows. ✅
 
 ## 6. Phase 6 — Catalog, Inventory, Channels, and Listings
 

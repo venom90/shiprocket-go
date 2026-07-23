@@ -8,8 +8,10 @@ import (
 	"github.com/venom90/shiprocket-go/auth"
 	"github.com/venom90/shiprocket-go/courier"
 	internalclient "github.com/venom90/shiprocket-go/internal/client"
+	"github.com/venom90/shiprocket-go/ndr"
 	"github.com/venom90/shiprocket-go/orders"
 	"github.com/venom90/shiprocket-go/pickupaddress"
+	"github.com/venom90/shiprocket-go/returns"
 	"github.com/venom90/shiprocket-go/shipment"
 )
 
@@ -68,7 +70,9 @@ type Client struct {
 	Orders          *orders.Service
 	Couriers        *courier.Service
 	PickupAddresses *pickupaddress.Service
+	Returns         *returns.Service
 	Shipments       *shipment.Service
+	NDR             *ndr.Service
 }
 
 func NewClient(cfg Config) *Client {
@@ -136,7 +140,9 @@ func NewClient(cfg Config) *Client {
 	client.Orders = orders.NewService(core)
 	client.Couriers = courier.NewService(core)
 	client.PickupAddresses = pickupaddress.NewService(core)
+	client.Returns = returns.NewService(core)
 	client.Shipments = shipment.NewService(core)
+	client.NDR = ndr.NewService(core)
 
 	return client
 }

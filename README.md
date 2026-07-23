@@ -102,7 +102,9 @@ New integrations should prefer the root client and service registration pattern:
 - `client.Orders`
 - `client.Couriers`
 - `client.PickupAddresses`
+- `client.Returns`
 - `client.Shipments`
+- `client.NDR`
 
 ## Downloading Generated Artifacts
 
@@ -123,4 +125,22 @@ if err != nil {
 
 _ = pdf.FileName
 _ = pdf.Body
+```
+
+## Reverse Logistics And NDR
+
+Return and exchange workflows are available through `client.Returns`, including return-specific serviceability and AWB assignment helpers that automatically set `is_return`.
+
+For NDR remediation, use `client.NDR` with the typed action constants:
+
+```go
+_, err = client.NDR.Act(ctx, &ndr.ActionRequest{
+    AWB:      "8373927474982",
+    Action:   ndr.ActionReattempt,
+    Comments: "Customer requested reattempt tomorrow",
+    Phone:    "9999988888",
+})
+if err != nil {
+    return
+}
 ```
