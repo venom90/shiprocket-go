@@ -75,6 +75,15 @@ func main() {
 }
 ```
 
+## Authentication Notes
+
+- `client.Auth.Login(ctx)` uses the credentials configured on `shiprocket.NewClient`.
+- `client.Auth.LoginWithRequest(ctx, &shiprocket.LoginRequest{...})` is available when you want to supply credentials explicitly per call.
+- `client.Auth.Logout(ctx)` uses the token already configured on the client.
+- `client.Auth.LogoutToken(ctx, token)` is available when you need to revoke a specific bearer token without rebuilding the client.
+- For production integrations, prefer reusing a valid bearer token or a custom `TokenSource` over logging in before every request.
+- Automatic login-on-demand and refresh orchestration are not part of the SDK core yet; they will be handled in the auth lifecycle phase.
+
 ## Public Entry Points
 
 - Root SDK client: `github.com/venom90/shiprocket-go`

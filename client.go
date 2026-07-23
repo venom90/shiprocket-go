@@ -28,6 +28,8 @@ type Request = internalclient.Request
 type MultipartBody = internalclient.MultipartBody
 type MultipartFile = internalclient.MultipartFile
 type Download = internalclient.Download
+type LoginRequest = auth.LoginRequest
+type LoginResponse = auth.LoginResponse
 
 type Credentials struct {
 	Email    string

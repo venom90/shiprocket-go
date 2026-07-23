@@ -10,9 +10,18 @@ import (
 
 var ErrCredentialsRequired = errors.New("shiprocket auth credentials are required")
 
+// Credentials captures Shiprocket login credentials for token creation.
 type Credentials struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+// LoginRequest is the explicit request DTO for POST /v1/external/auth/login.
+type LoginRequest = Credentials
+
+// LoginResponse is the explicit response DTO for POST /v1/external/auth/login.
+type LoginResponse struct {
+	Token string `json:"token"`
 }
 
 type Service struct {
@@ -20,6 +29,9 @@ type Service struct {
 	credentials *Credentials
 }
 
+// AuthService is a compatibility wrapper around the shared client-backed auth service.
+//
+// Deprecated: prefer shiprocket.NewClient(...).Auth instead.
 type AuthService struct {
 	BaseURL    string
 	Email      string
@@ -28,11 +40,8 @@ type AuthService struct {
 	UserAgent  string
 }
 
-type AuthResponse struct {
-	Token string `json:"token"`
-}
-
-type LoginRequest = Credentials
+// Deprecated: use LoginResponse instead.
+type AuthResponse = LoginResponse
 
 func NewService(client *internalclient.Client, credentials *Credentials) *Service {
 	return &Service{
@@ -41,26 +50,34 @@ func NewService(client *internalclient.Client, credentials *Credentials) *Servic
 	}
 }
 
-func (s *Service) Login(ctx context.Context) (*AuthResponse, error) {
+func (s *Service) Login(ctx context.Context) (*LoginResponse, error) {
 	if s.credentials == nil {
 		return nil, ErrCredentialsRequired
 	}
 
-	return s.LoginWithCredentials(ctx, *s.credentials)
+	return s.LoginWithRequest(ctx, (*LoginRequest)(s.credentials))
 }
 
-func (s *Service) LoginWithCredentials(ctx context.Context, credentials Credentials) (*AuthResponse, error) {
-	var response AuthResponse
+func (s *Service) LoginWithRequest(ctx context.Context, request *LoginRequest) (*LoginResponse, error) {
+	if request == nil {
+		return nil, ErrCredentialsRequired
+	}
+
+	var response LoginResponse
 	err := s.client.Do(ctx, &internalclient.Request{
 		Method:   http.MethodPost,
 		Path:     "/v1/external/auth/login",
-		JSONBody: credentials,
+		JSONBody: request,
 	}, &response)
 	if err != nil {
 		return nil, err
 	}
 
 	return &response, nil
+}
+
+func (s *Service) LoginWithCredentials(ctx context.Context, credentials Credentials) (*LoginResponse, error) {
+	return s.LoginWithRequest(ctx, (*LoginRequest)(&credentials))
 }
 
 func (s *Service) Logout(ctx context.Context) error {
@@ -86,7 +103,7 @@ func (s *Service) LogoutToken(ctx context.Context, token string) error {
 	}, nil)
 }
 
-func (s *AuthService) Login(ctx context.Context) (*AuthResponse, error) {
+func (s *AuthService) Login(ctx context.Context) (*LoginResponse, error) {
 	client := internalclient.New(
 		s.BaseURL,
 		internalclient.WithHTTPClient(s.HTTPClient),

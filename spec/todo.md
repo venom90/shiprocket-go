@@ -146,22 +146,28 @@ Acceptance Criteria
 ### 1.1 Authentication API
 
 Documented Endpoints
-- [ ] `POST /v1/external/auth/login`
-- [ ] `POST /v1/external/auth/logout`
+- [x] `POST /v1/external/auth/login`
+- [x] `POST /v1/external/auth/logout`
 
 Tasks
-- [ ] Replace `auth.AuthService` with a client-backed auth service.
-- [ ] Support explicit login request/response types.
-- [ ] Implement logout support.
-- [ ] Add optional token caching and refresh strategy guidance, even if Shiprocket does not expose refresh tokens.
-- [ ] Document whether auto-login from email/password belongs in the SDK core or an opt-in helper.
+- [x] Replace `auth.AuthService` with a client-backed auth service.
+- [x] Support explicit login request/response types.
+- [x] Implement logout support.
+- [x] Add optional token caching and refresh strategy guidance, even if Shiprocket does not expose refresh tokens.
+- [x] Document whether auto-login from email/password belongs in the SDK core or an opt-in helper.
+
+Notes
+- Verified on July 23, 2026 against Shiprocket's live docs at `https://apidocs.shiprocket.in/`, which currently list both login and logout under the public auth section.
+- The shared `client.Auth` service is now the primary integration path; the legacy `auth.AuthService` remains only as a deprecated compatibility wrapper.
+- Explicit DTOs are exposed as `auth.LoginRequest` / `auth.LoginResponse` and re-exported from the root package as `shiprocket.LoginRequest` / `shiprocket.LoginResponse`.
+- Credentials-based login remains an opt-in helper for token creation. Reusing a configured bearer token or `TokenSource` remains the preferred steady-state integration model until the auth lifecycle phase adds coordinated login/refresh behavior.
 
 Testing
-- [ ] Add success and invalid-credential tests.
-- [ ] Add logout tests.
+- [x] Add success and invalid-credential tests.
+- [x] Add logout tests.
 
 Acceptance Criteria
-- Consumers can authenticate and revoke sessions using first-class SDK methods.
+- Consumers can authenticate and revoke sessions using first-class SDK methods. ✅
 
 ### 1.2 Auth Lifecycle Strategy
 
